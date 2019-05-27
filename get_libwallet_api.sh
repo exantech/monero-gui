@@ -1,6 +1,6 @@
 #!/bin/bash
-MONERO_URL=https://github.com/monero-project/monero.git
-MONERO_BRANCH=master
+MONERO_URL=https://github.com/exantech/monero.git
+MONERO_BRANCH=release-v0.13-exa-wallet
 
 pushd $(pwd)
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -13,42 +13,43 @@ BUILD_LIBWALLET=false
 
 # init and update monero submodule
 if [ ! -d $MONERO_DIR/src ]; then
-    git submodule init monero
+    git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} ${MONERO_URL}
+    # git submodule init monero
 fi
-git submodule update --remote
-git -C $MONERO_DIR fetch
-git -C $MONERO_DIR checkout v0.14.1.0
+# git submodule update --remote
+# git -C $MONERO_DIR fetch
+# git -C $MONERO_DIR checkout origin/release-v0.13
 
-# get monero core tag
-pushd $MONERO_DIR
-get_tag
-popd
-# create local monero branch
-git -C $MONERO_DIR checkout -B $VERSIONTAG
+# # get monero core tag
+# pushd $MONERO_DIR
+# get_tag
+# popd
+# # create local monero branch
+# git -C $MONERO_DIR checkout -B $VERSIONTAG
 
-# Merge monero PR dependencies
+# # Merge monero PR dependencies
 
-# Workaround for git username requirements
-# Save current user settings and revert back when we are done with merging PR's
-OLD_GIT_USER=$(git -C $MONERO_DIR config --local user.name)
-OLD_GIT_EMAIL=$(git -C $MONERO_DIR config --local user.email)
-git -C $MONERO_DIR config user.name "Monero GUI"
-git -C $MONERO_DIR config user.email "gui@monero.local"
-# check for PR requirements in most recent commit message (i.e requires #xxxx)
-for PR in $(git log --format=%B -n 1 | grep -io "requires #[0-9]*" | sed 's/[^0-9]*//g'); do
-    echo "Merging monero push request #$PR"
-    # fetch pull request and merge
-    git -C $MONERO_DIR fetch origin pull/$PR/head:PR-$PR
-    git -C $MONERO_DIR merge --quiet PR-$PR  -m "Merge monero PR #$PR"
-    BUILD_LIBWALLET=true
-done
+# # Workaround for git username requirements
+# # Save current user settings and revert back when we are done with merging PR's
+# OLD_GIT_USER=$(git -C $MONERO_DIR config --local user.name)
+# OLD_GIT_EMAIL=$(git -C $MONERO_DIR config --local user.email)
+# git -C $MONERO_DIR config user.name "Monero GUI"
+# git -C $MONERO_DIR config user.email "gui@monero.local"
+# # check for PR requirements in most recent commit message (i.e requires #xxxx)
+# for PR in $(git log --format=%B -n 1 | grep -io "requires #[0-9]*" | sed 's/[^0-9]*//g'); do
+#     echo "Merging monero push request #$PR"
+#     # fetch pull request and merge
+#     git -C $MONERO_DIR fetch origin pull/$PR/head:PR-$PR
+#     git -C $MONERO_DIR merge --quiet PR-$PR  -m "Merge monero PR #$PR"
+#     BUILD_LIBWALLET=true
+# done
 
-# revert back to old git config
-$(git -C $MONERO_DIR config user.name "$OLD_GIT_USER")
-$(git -C $MONERO_DIR config user.email "$OLD_GIT_EMAIL")
+# # revert back to old git config
+# $(git -C $MONERO_DIR config user.name "$OLD_GIT_USER")
+# $(git -C $MONERO_DIR config user.email "$OLD_GIT_EMAIL")
 
-git -C $MONERO_DIR submodule init
-git -C $MONERO_DIR submodule update
+# git -C $MONERO_DIR submodule init
+# git -C $MONERO_DIR submodule update
 
 # Build libwallet if it doesnt exist
 if [ ! -f $MONERO_DIR/lib/libwallet_merged.a ]; then 
@@ -68,12 +69,12 @@ else
     echo "latest libwallet version: $GUI_MONERO_VERSION"
     echo "Installed libwallet version: $VERSIONTAG"
     # check if recent
-    if [ "$VERSIONTAG" != "$GUI_MONERO_VERSION" ]; then
-        echo "Building new libwallet version $GUI_MONERO_VERSION"
-        BUILD_LIBWALLET=true
-    else
-        echo "latest libwallet ($GUI_MONERO_VERSION) is already built. Remove monero/lib/libwallet_merged.a to force rebuild"
-    fi
+    # if [ "$VERSIONTAG" != "$GUI_MONERO_VERSION" ]; then
+    #     echo "Building new libwallet version $GUI_MONERO_VERSION"
+    #     BUILD_LIBWALLET=true
+    # else
+    #     echo "latest libwallet ($GUI_MONERO_VERSION) is already built. Remove monero/lib/libwallet_merged.a to force rebuild"
+    # fi
 fi
 
 if [ "$BUILD_LIBWALLET" != true ]; then
@@ -217,6 +218,8 @@ fi
 if test -z "$CPU_CORE_COUNT"; then
   CPU_CORE_COUNT=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 fi
+
+CPU_CORE_COUNT=2
 
 # Build libwallet_merged
 pushd $MONERO_DIR/build/$BUILD_TYPE/src/wallet

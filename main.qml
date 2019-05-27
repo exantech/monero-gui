@@ -223,7 +223,13 @@ ApplicationWindow {
     }
 
     function initialize() {
-        appWindow.viewState = "normal";
+        if (!wizard.isMultisignature) {
+            appWindow.viewState = "normal";
+        } else {
+            appWindow.viewState = "multisigSplash";
+        }
+
+//        appWindow.viewState = "normal";
         console.log("initializing..")
 
         // Use stored log level
@@ -269,6 +275,13 @@ ApplicationWindow {
             }
 
             connectWallet(wizard.m_wallet)
+
+            if (wizard.isMultisignature) {
+                MoneroComponents.MsProto.openSession(currentWallet.publicSpendKey)
+                multisigSplash.wallet = currentWallet
+                multisigSplash.signaturesCount = wizard.signaturesCount
+                multisigSplash.participantsCount = wizard.participantsCount
+            }
 
             isNewWallet = true
             // We don't need the wizard wallet any more - delete to avoid conflict with daemon adress change
@@ -563,6 +576,19 @@ ApplicationWindow {
             if(/^\w+:\/\/(.*)$/.test(queuedCmd)) appWindow.onUriHandler(queuedCmd); // uri
         }
     }
+
+    //debug my
+    Connections {
+        target: MoneroComponents.MsProto
+        onSessionOpened: {
+            notifier.show("Session opened");
+        }
+
+        onError: {
+            notifier.show(msg);
+        }
+    }
+    //end debug my
 
     function onWalletClosed(walletAddress) {
         hideProcessingSplash();
@@ -1585,6 +1611,17 @@ ApplicationWindow {
         messageText: qsTr("Please wait...") + translationManager.emptyString
     }
 
+    //debug my
+    MultisigSplash {
+        id: multisigSplash
+        visible: false
+
+        onWalletCreated: {
+            rootItem.state = "normal"
+        }
+    }
+    //end debug my
+
     Item {
         id: rootItem
         anchors.fill: parent
@@ -1609,6 +1646,22 @@ ApplicationWindow {
                 PropertyChanges { target: resizeArea; visible: true }
                 PropertyChanges { target: titleBar; state: "default" }
                 PropertyChanges { target: mobileHeader; visible: isMobile ? true : false }
+            }, State {
+                name: "multisigSplash"
+                PropertyChanges { target: leftPanel; visible: false }
+                PropertyChanges { target: rightPanel; visible: false }
+                PropertyChanges { target: middlePanel; visible: false }
+                PropertyChanges { target: wizard; visible: false }
+                PropertyChanges { target: appWindow; width: (screenWidth < 969 || isAndroid || isIOS)? screenWidth : 969 } //rightPanelExpanded ? 1269 : 1269 - 300;
+                PropertyChanges { target: appWindow; height: maxWindowHeight; }
+                PropertyChanges { target: resizeArea; visible: true }
+                PropertyChanges { target: mobileHeader; visible: false }
+                PropertyChanges { target: titleBar; basicButtonVisible: false }
+                PropertyChanges { target: titleBar; showMaximizeButton: true }
+                PropertyChanges { target: titleBar; visible: true }
+                PropertyChanges { target: titleBar; title: qsTr("Monero") + translationManager.emptyString }
+                PropertyChanges { target: multisigSplash; visible: true }
+                PropertyChanges { target: multisigSplash; status: qsTr("Waiting for other participants") }
             }
         ]
 
@@ -1850,7 +1903,12 @@ ApplicationWindow {
             id: wizard
             anchors.fill: parent
             onUseMoneroClicked: {
-                rootItem.state = "normal";
+                if (!wizard.isMultisignature) {
+                    rootItem.state = "normal";
+                } else {
+                    rootItem.state = "multisigSplash";
+                }
+
                 appWindow.initialize();
             }
         }

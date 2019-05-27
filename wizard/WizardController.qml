@@ -73,6 +73,10 @@ Rectangle {
         wizardController.walletRestoreMode = 'seed'
         wizardController.walletOptionsSubaddressLookahead = '';
         wizardController.remoteNodes = {};
+	wizardController.isMultisignature = false;
+        wizardController.signaturesCount = 0;
+        wizardController.participantsCount = 0;
+
         disconnect();
 
         if (typeof wizardController.m_wallet !== 'undefined'){
@@ -109,6 +113,11 @@ Rectangle {
     property string tmpWalletFilename: ''
     property var remoteNodes: ''
 
+    // multisig wallet variables
+    property bool isMultisignature: false
+    property int signaturesCount: 0
+    property int participantsCount: 0
+
     // language settings, updated via sidebar
     property string language_locale: 'en_US'
     property string language_wallet: 'English'
@@ -138,6 +147,10 @@ Rectangle {
         property WizardLanguage wizardLanguageView: WizardLanguage { }
         property WizardHome wizardHomeView: WizardHome { }
         property WizardCreateWallet1 wizardCreateWallet1View: WizardCreateWallet1 { }
+        property WizardCreateMultisigWallet1 wizardCreateMultisigWallet1View: WizardCreateMultisigWallet1 { }
+        property WizardCreateMultisigWallet2 wizardCreateMultisigWallet2View: WizardCreateMultisigWallet2 { }
+        property WizardCreateMultisigWallet3 wizardCreateMultisigWallet3View: WizardCreateMultisigWallet3 { }
+        property WizardCreateMultisigWallet4 wizardCreateMultisigWallet4View: WizardCreateMultisigWallet4 { }
         property WizardCreateWallet2 wizardCreateWallet2View: WizardCreateWallet2 { }
         property WizardCreateWallet3 wizardCreateWallet3View: WizardCreateWallet3 { }
         property WizardCreateWallet4 wizardCreateWallet4View: WizardCreateWallet4 { }
@@ -251,6 +264,22 @@ Rectangle {
                 name: "wizardModeBootstrap"
                 PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardModeBootstrapView }
                 PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeBootstrapView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardCreateMultisigWallet1"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardCreateMultisigWallet1View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardCreateMultisigWallet2"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardCreateMultisigWallet2View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardCreateMultisigWallet3"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardCreateMultisigWallet3View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardCreateMultisigWallet4"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardCreateMultisigWallet4View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
             }
         ]
 

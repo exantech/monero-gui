@@ -569,3 +569,28 @@ void WalletManager::onPassphraseEntered(const QString &passphrase, bool entry_ab
     m_cond_pass.wakeAll();
     m_mutex_pass.unlock();
 }
+
+QString WalletManager::signMessage(const QString& message, const QString& secretKey) {
+    return QString::fromStdString(Bitmonero::signMessage(message.toStdString(), secretKey.toStdString()));
+}
+
+QString WalletManager::signMultisigParticipantMessage(const QString& message, const QString& secretKey) {
+    return QString::fromStdString(Bitmonero::signMultisigParticipantMessage(message.toStdString(), secretKey.toStdString()));
+}
+
+QString WalletManager::multiplyKeys(const QString& secretKey, const QString& publicKey) {
+    return QString::fromStdString(Bitmonero::multiplyKeys(secretKey.toStdString(), publicKey.toStdString()));
+}
+
+QString WalletManager::ephemeralKey(const QString& key, quint32 seed) {
+    return QString::fromStdString(Bitmonero::ephemeralKey(key.toStdString(), static_cast<uint32_t>(seed)));
+}
+
+QString WalletManager::chachaEncrypt(const QString& msg, const QString& key) {
+    return QString::fromStdString(Bitmonero::chachaEncrypt(msg.toStdString(), key.toStdString()));
+}
+
+QString WalletManager::chachaDecrypt(const QString& cipher, const QString& key) {
+    return QString::fromStdString(Bitmonero::chachaDecrypt(cipher.toStdString(), key.toStdString()));
+}
+

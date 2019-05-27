@@ -132,6 +132,29 @@ Rectangle {
                 }
             }
 
+            //debug my
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 3 * scaleRatio
+                Layout.bottomMargin: 3 * scaleRatio
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
+
+            WizardMenuItem {
+                headerText: qsTr("Create multisig wallet") + translationManager.emptyString
+                bodyText: qsTr("Create your own cryptofund.") + translationManager.emptyString
+                imageIcon: "../images/restore-wallet.png"
+
+                onMenuClicked: {
+                    wizardController.restart();
+                    wizardController.createWallet();
+                    wizardStateView.state = "wizardCreateMultisigWallet1"
+                }
+            }
+            //end debug my
+
             RowLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: 16

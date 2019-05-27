@@ -331,7 +331,7 @@ linux {
         -lssl \
         -llmdb \
         -lsodium \
-        -lhidapi-libusb \
+#        -lhidapi-libusb \
         -lcrypto $$TREZOR_LINKER
 
     if(!android) {
@@ -485,8 +485,12 @@ OTHER_FILES += \
     $$TRANSLATIONS
 
 DISTFILES += \
+    MultisigSplash.qml \
+    components/MsProto.qml \
+    components/SpinBox.qml \
     notes.txt \
-    monero/src/wallet/CMakeLists.txt
+    monero/src/wallet/CMakeLists.txt \
+    wizard/WizardMultisignatureScheme.qml
 
 
 # windows application icon

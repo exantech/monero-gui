@@ -192,6 +192,13 @@ public:
     Q_INVOKABLE void onWalletPassphraseNeeded(Monero::Wallet * wallet);
     Q_INVOKABLE void onPassphraseEntered(const QString &passphrase, bool entry_abort=false);
 
+    // multisignature protocol functions
+    Q_INVOKABLE QString signMessage(const QString& message, const QString& secretKey);
+    Q_INVOKABLE QString signMultisigParticipantMessage(const QString& message, const QString& secretKey);
+    Q_INVOKABLE QString multiplyKeys(const QString& secretKey, const QString& publicKey);
+    Q_INVOKABLE QString ephemeralKey(const QString& key, quint32 seed);
+    Q_INVOKABLE QString chachaEncrypt(const QString& msg, const QString& key);
+    Q_INVOKABLE QString chachaDecrypt(const QString& cipher, const QString& key);
 signals:
 
     void walletOpened(Wallet * wallet);

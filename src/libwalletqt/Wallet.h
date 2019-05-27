@@ -83,6 +83,7 @@ class Wallet : public QObject
     Q_PROPERTY(QString publicSpendKey READ getPublicSpendKey)
     Q_PROPERTY(QString daemonLogPath READ getDaemonLogPath CONSTANT)
     Q_PROPERTY(quint64 walletCreationHeight READ getWalletCreationHeight WRITE setWalletCreationHeight NOTIFY walletCreationHeightChanged)
+    Q_PROPERTY(QString multisigInfo READ getMultisigInfo)
 
 public:
 
@@ -327,6 +328,9 @@ public:
     Q_INVOKABLE void segregatePreForkOutputs(bool segregate);
     Q_INVOKABLE void segregationHeight(quint64 height);
     Q_INVOKABLE void keyReuseMitigation2(bool mitigation);
+
+    Q_INVOKABLE QString getMultisigInfo();
+    Q_INVOKABLE QString makeMultisig(const QVector<QString>& info, quint32 threshold);
 
     // TODO: setListenter() when it implemented in API
 signals:

@@ -59,15 +59,16 @@ ColumnLayout {
 
     WizardSummaryItem {
         Layout.fillWidth: true
-        header: qsTr("Wallet name") + translationManager.emptyString
-        value: walletOptionsName
+        header: qsTr("Restore height") + translationManager.emptyString
+        value: wizardController.walletOptionsRestoreHeight
+        visible: wizardStateView.state === "wizardRestoreWallet4" || wizardController.walletOptionsIsRecoveringFromDevice
     }
 
     WizardSummaryItem {
         Layout.fillWidth: true
-        header: qsTr("Restore height") + translationManager.emptyString
-        value: wizardController.walletOptionsRestoreHeight
-        visible: wizardStateView.state === "wizardRestoreWallet4" || wizardController.walletOptionsIsRecoveringFromDevice
+        header: qsTr("Multisignature scheme") + translationManager.emptyString
+        value: wizardController.signaturesCount + "/" + wizardController.participantsCount
+        visible: wizardController.isMultisignature
     }
 
     WizardSummaryItem {

@@ -253,5 +253,13 @@
         <file>images/copy.svg</file>
         <file>images/edit.svg</file>
         <file>images/arrow-right-in-circle-outline-medium-white.svg</file>
+        <file>wizard/WizardCreateMultisigWallet1.qml</file>
+        <file>wizard/WizardCreateMultisigWallet2.qml</file>
+        <file>wizard/WizardCreateMultisigWallet4.qml</file>
+        <file>wizard/WizardCreateMultisigWallet3.qml</file>
+        <file>wizard/WizardMultisignatureScheme.qml</file>
+        <file>components/SpinBox.qml</file>
+        <file>components/MsProto.qml</file>
+        <file>MultisigSplash.qml</file>
     </qresource>
 </RCC>
