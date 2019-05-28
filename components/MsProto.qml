@@ -2,6 +2,8 @@ pragma Singleton
 
 import QtQuick 2.0
 
+import "../js/Request.js" as Request
+
 QtObject {
     property string mwsUrl: "https://mws-stage.exan.tech/"
     property string apiVersion: "api/v1/"
@@ -28,16 +30,15 @@ QtObject {
 
     function openSession(signerKey) {
         console.error("openning session. public key: " + signerKey);
-        var data = {
+        var data = JSON.stringify({
             'public_key': signerKey
-        }
+        });
 
-        makeRequest(
-            "POST",
-            getUrl("open_session"),
-            JSON.stringify(data),
-            null,
-            function(resp) {
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("open_session"))
+            .setData(data)
+            .onSuccess(function(resp) {
                 try {
                     var obj = JSON.parse(resp);
                     if (!obj.session_id) {
@@ -49,8 +50,8 @@ QtObject {
                 } catch (e) {
                     error("failed to process \"open_session\" response: " + e);
                 }
-            },
-            function(status, text) {
+            })
+            .onError(function(status, text) {
                 var msg = "failed to open session (HTTP status " + status + ")";
                 if (text) {
                     msg += ": " + text;
@@ -59,6 +60,8 @@ QtObject {
                 console.error(msg);
                 error(msg);
             });
+
+        req.send();
     }
 
     function createWallet(wallet, name, signatures, participants) {
@@ -82,15 +85,15 @@ QtObject {
             'name': name,
         });
 
-        var nonce = getNonce();
+        var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, wallet.secretSpendKey);
 
-        makeRequest(
-            "POST",
-            getUrl("create_wallet"),
-            data,
-            getHeaders(sessionId, nonce, signature),
-            function(resp) {
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("create_wallet"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(function(resp) {
                 //debug my
                 console.error("create wallet response: " + resp);
                 try {
@@ -103,8 +106,8 @@ QtObject {
                     console.error("failed to process response: " + e);
                     error("failed to process response: " + e);
                 }
-            },
-            function(status, text) {
+            })
+            .onError(function(status, text) {
                 //debug my
                 console.error("fail: " + text);
                 var msg = "\"create_wallet\" HTTP status " + status;
@@ -114,6 +117,8 @@ QtObject {
 
                 error(msg);
             });
+
+        req.send();
     }
 
     function checkMultisigInfos() {
@@ -125,11 +130,14 @@ QtObject {
             return;
         }
 
-        var nonce = getNonce();
+        var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        makeRequest("GET", getUrl("info/multisig"), null, getHeaders(sessionId, nonce, signature),
-            function (resp) {
+        var req = new Request.Request()
+            .setMethod("GET")
+            .setUrl(getUrl("info/multisig"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(function (resp) {
                 timer.stop();
                 //debug my
                 console.error("multisig info response: " + resp);
@@ -159,8 +167,8 @@ QtObject {
                     error("failed to process response: " + e);
                     timer.start();
                 }
-            },
-            function (status, text) {
+            })
+            .onError(function (status, text) {
                 var msg = "failed to check multisig info (HTTP status " + status + ")";
                 if (text) {
                     msg += ": " + text;
@@ -168,39 +176,17 @@ QtObject {
 
                 console.error(msg);
                 error(msg);
-            })
-    }
+            });
 
-    function makeRequest(method, url, data, headers, successCb, errorCb) {
-        var req = new XMLHttpRequest();
-        req.open(method, url);
-        req.onreadystatechange = function () {
-            if (req.readyState === 4) { //request done
-                if (req.status === 200 || req.status === 204) {
-                    if (successCb) {
-                        successCb(req.responseText);
-                    }
-                } else {
-                    if (errorCb) {
-                        errorCb(req.status, req.responseText);
-                    }
-                }
-            }
-        }
-
-        for (var k in headers) {
-            req.setRequestHeader(k, headers[k])
-        }
-
-        req.send(data);
+        req.send();
     }
 
     function getUrl(method) {
         return mwsUrl + apiVersion + method
     }
 
-    function getNonce() {
-        return 1;
+    function nextNonce() {
+        return new Date().getTime();
     }
 
     function getHeaders(session, nonce, signature) {

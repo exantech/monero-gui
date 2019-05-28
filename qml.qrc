@@ -261,5 +261,6 @@
         <file>components/SpinBox.qml</file>
         <file>components/MsProto.qml</file>
         <file>MultisigSplash.qml</file>
+        <file>js/Request.js</file>
     </qresource>
 </RCC>
