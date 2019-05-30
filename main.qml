@@ -133,6 +133,8 @@ ApplicationWindow {
     property int current_subaddress_table_index: 0
     property int current_subaddress_account_table_index: 0
 
+    property MoneroComponents.MsMeta multisigMeta: MoneroComponents.MsMeta { }
+
     function altKeyReleased() { ctrlPressed = false; }
 
     function showPageRequest(page) {
@@ -223,10 +225,10 @@ ApplicationWindow {
     }
 
     function initialize() {
-        if (!wizard.isMultisignature) {
-            appWindow.viewState = "normal";
-        } else {
+        if (wizard.isMultisignature) {
             appWindow.viewState = "multisigSplash";
+        } else {
+            appWindow.viewState = "normal";
         }
 
 //        appWindow.viewState = "normal";
@@ -277,10 +279,16 @@ ApplicationWindow {
             connectWallet(wizard.m_wallet)
 
             if (wizard.isMultisignature) {
-                MoneroComponents.MsProto.openSession(currentWallet.publicSpendKey)
-                multisigSplash.wallet = currentWallet
-                multisigSplash.signaturesCount = wizard.signaturesCount
-                multisigSplash.participantsCount = wizard.participantsCount
+                multisigMeta.state = "personal"
+                multisigMeta.signaturesRequired = wizard.signaturesCount
+                multisigMeta.participantsCount = wizard.participantsCount
+                multisigMeta.save(persistentSettings.wallet_path + ".meta")
+
+                MoneroComponents.MsProto.state = "personal"
+                MoneroComponents.MsProto.mWallet = currentWallet
+                MoneroComponents.MsProto.signaturesRequired = wizard.signaturesCount
+                MoneroComponents.MsProto.participantsCount = wizard.participantsCount
+                MoneroComponents.MsProto.start()
             }
 
             isNewWallet = true
@@ -300,6 +308,14 @@ ApplicationWindow {
 
         // Hide titlebar based on persistentSettings.customDecorations
         titleBar.visible = persistentSettings.customDecorations;
+
+        //debug my
+        var metaPath = persistentSettings.wallet_path
+        if (metaPath.endsWith(".keys")) {
+            metaPath = metaPath.substring(0, metaPath.length - 4 - 1)
+        }
+
+        multisigMeta.load(metaPath + ".meta")
     }
 
     function closeWallet() {
@@ -574,6 +590,16 @@ ApplicationWindow {
         if(typeof IPC !== "undefined" && IPC.queuedCmd().length > 0){
             var queuedCmd = IPC.queuedCmd();
             if(/^\w+:\/\/(.*)$/.test(queuedCmd)) appWindow.onUriHandler(queuedCmd); // uri
+        }
+
+        //debug my
+        if (multisigMeta.loaded) {
+            console.error("multisig meta loaded")
+            MoneroComponents.MsProto.state = multisigMeta.state
+            MoneroComponents.MsProto.mWallet = currentWallet
+            MoneroComponents.MsProto.signaturesRequired = multisigMeta.signaturesRequired
+            MoneroComponents.MsProto.participantsCount = multisigMeta.participantsCount
+            MoneroComponents.MsProto.start()
         }
     }
 
@@ -1617,7 +1643,10 @@ ApplicationWindow {
         visible: false
 
         onWalletCreated: {
-            rootItem.state = "normal"
+            rootItem.state = "normal";
+
+            multisigMeta.state = "ready";
+            multisigMeta.save(persistentSettings.wallet_path + ".meta");
         }
     }
     //end debug my

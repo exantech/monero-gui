@@ -1010,3 +1010,14 @@ QString Wallet::makeMultisig(const QVector<QString>& info, quint32 threshold) {
 
     return QString::fromStdString(m_walletImpl->makeMultisig(ms, static_cast<uint32_t>(threshold)));
 }
+
+QString Wallet::exchangeMultisigKeys(const QVector<QString>& info) {
+    std::vector<std::string> ms;
+    ms.reserve(info.size());
+
+    for (const auto& i: info) {
+        ms.push_back(i.toStdString());
+    }
+
+    return QString::fromStdString(m_walletImpl->exchangeMultisigKeys(ms));
+}

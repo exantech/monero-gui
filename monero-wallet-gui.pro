@@ -486,6 +486,7 @@ OTHER_FILES += \
 
 DISTFILES += \
     MultisigSplash.qml \
+    components/MsMeta.qml \
     components/MsProto.qml \
     components/SpinBox.qml \
     notes.txt \

@@ -1,50 +1,67 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.0
 
 import "components" as MoneroComponents
+import moneroComponents.Clipboard 1.0
 
 Item {
     id: multisigSplash
     anchors.fill: parent
 
-    property string inviteCode
     property alias status: multisigWaitLabel.text
-    property var wallet
-    property int signaturesCount
-    property int participantsCount
+    property string walletInviteCode
 
     signal walletCreated
 
-    onInviteCodeChanged: {
-        if (inviteCode) {
-            multisigInviteCode.text = qsTr("Invite code: " + inviteCode);
-        } else {
-            multisigInviteCode.text = "";
-        }
-    }
-
     Rectangle {
         anchors.fill: parent
-        color: MoneroComponents.Style.moneroGrey
+        color: "#161616"
 
-        RowLayout {
+        ColumnLayout {
             anchors.centerIn: parent
+            spacing: 5
 
-            MoneroComponents.Label {
+            Label {
                 id: multisigWaitLabel
+                color: MoneroComponents.Style.defaultFontColor
+                font.pixelSize: 16 * scaleRatio
+
+                text: "Connecting to server..."
             }
 
-            MoneroComponents.Label {
-                 id: multisigInviteCode
+            RowLayout {
+                id: inviteCodeLayout
+                visible: false
+                spacing: 10
+
+                Label {
+                    id: multisigInviteCode
+                    Layout.fillWidth: true
+                    color: MoneroComponents.Style.defaultFontColor
+                    font.pixelSize: 16 * scaleRatio
+                }
+
+                MoneroComponents.IconButton {
+                    id: copyButton
+                    imageSource: "../images/dropdownCopy@2x.png"
+                    anchors.right: parent.right
+
+                    onClicked: {
+                        clipboard.setText(multisigSplash.walletInviteCode);
+                        appWindow.showStatusMessage(qsTr("Invite code copied to clipboard"),3);
+                    }
+                }
             }
         }
+
+        Clipboard { id: clipboard }
     }
 
     Connections {
         target: MoneroComponents.MsProto
         onSessionOpened: {
-            status = "Session opened, creating wallet...";
-            MoneroComponents.MsProto.createWallet(wallet, "good wallet", signaturesCount, participantsCount);
+            multisigWaitLabel.text = "Session opened, creating wallet...";
         }
 
         onError: {
@@ -52,12 +69,29 @@ Item {
         }
 
         onInviteCodeReceived: {
-            status = "Share invite code";
-            inviteCode = inviteCode;
+            inviteCodeLayout.visible = true
+            multisigWaitLabel.text = "Share invite code";
+            multisigInviteCode.text = "Invite code: <b>" + shortInviteCode(inviteCode, 16) + "</b>";
+            walletInviteCode = inviteCode
+
+            multisigMeta.state = "inProgress";
+            multisigMeta.save();
         }
 
         onWalletCreated: {
             walletCreated()
         }
+    }
+
+    function shortInviteCode(text, size) {
+        if (!text)
+          return text
+
+        if (text.length < size * 2 + 3)
+          return text
+
+        var begin = text.substring(0, size);
+        var end = text.substring(text.length - size);
+        return begin + "..." + end;
     }
 }

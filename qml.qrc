@@ -262,5 +262,6 @@
         <file>components/MsProto.qml</file>
         <file>MultisigSplash.qml</file>
         <file>js/Request.js</file>
+        <file>components/MsMeta.qml</file>
     </qresource>
 </RCC>

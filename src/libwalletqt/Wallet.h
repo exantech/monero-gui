@@ -331,6 +331,7 @@ public:
 
     Q_INVOKABLE QString getMultisigInfo();
     Q_INVOKABLE QString makeMultisig(const QVector<QString>& info, quint32 threshold);
+    Q_INVOKABLE QString exchangeMultisigKeys(const QVector<QString>& info);
 
     // TODO: setListenter() when it implemented in API
 signals:
