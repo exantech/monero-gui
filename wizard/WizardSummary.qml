@@ -67,7 +67,7 @@ ColumnLayout {
     WizardSummaryItem {
         Layout.fillWidth: true
         header: qsTr("Multisignature scheme") + translationManager.emptyString
-        value: wizardController.signaturesCount + "/" + wizardController.participantsCount
+        value: !wizardController.joiningMultisig ? wizardController.signaturesCount + "/" + wizardController.participantsCount : "Joining existing multisignature wallet"
         visible: wizardController.isMultisignature
     }
 

@@ -279,12 +279,13 @@ ApplicationWindow {
             connectWallet(wizard.m_wallet)
 
             if (wizard.isMultisignature) {
-                multisigMeta.state = "personal"
+                multisigMeta.state = !wizard.joiningMultisig ? "personal" : "joining"
                 multisigMeta.signaturesRequired = wizard.signaturesCount
                 multisigMeta.participantsCount = wizard.participantsCount
                 multisigMeta.save(persistentSettings.wallet_path + ".meta")
 
-                MoneroComponents.MsProto.state = "personal"
+                MoneroComponents.MsProto.state = !wizard.joiningMultisig ? "personal" : "joining"
+                MoneroComponents.MsProto.inviteCode = wizard.inviteCode
                 MoneroComponents.MsProto.mWallet = currentWallet
                 MoneroComponents.MsProto.signaturesRequired = wizard.signaturesCount
                 MoneroComponents.MsProto.participantsCount = wizard.participantsCount
@@ -315,7 +316,11 @@ ApplicationWindow {
             metaPath = metaPath.substring(0, metaPath.length - 4 - 1)
         }
 
-        multisigMeta.load(metaPath + ".meta")
+        if (multisigMeta.load(metaPath + ".meta")) {
+            if (multisigMeta.state !== "ready") {
+                appWindow.viewState = "multisigSplash";
+            }
+        }
     }
 
     function closeWallet() {

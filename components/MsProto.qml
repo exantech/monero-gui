@@ -15,6 +15,7 @@ QtObject {
     property int changedKeys: 0
     property int nonce: 1
     property bool newWallet: false
+    property string inviteCode
 
     property string sessionId
 
@@ -53,25 +54,11 @@ QtObject {
         case "personal":
             createWallet("good wallet");
             break;
+        case "joining":
+            joinWallet();
+            break;
         case "inProgress":
-            getWalletInfo(function (info) {
-                //debug my
-                console.error("wallet info response: " + JSON.stringify(info));
-                if (signaturesRequired == 0) {
-                    signaturesRequired = info.signers;
-                }
-
-                if (participantsCount == 0) {
-                    participantsCount = info.participants;
-                }
-
-                changedKeys = info.changed_keys
-
-                timer.onTriggered.connect(exchangeKeys);
-                timer.start();
-
-                exchangeKeys();
-            });
+            getWalletInfo(infoHandler);
             break;
         case "ready":
             break;
@@ -81,6 +68,7 @@ QtObject {
     }
 
     function openSession(signerKey) {
+        //debug my
         console.error("openning session. public key: " + signerKey);
         var data = JSON.stringify({
             'public_key': signerKey
@@ -90,20 +78,15 @@ QtObject {
             .setMethod("POST")
             .setUrl(getUrl("open_session"))
             .setData(data)
-            .onSuccess(function(resp) {
-                try {
-                    var obj = JSON.parse(resp);
-                    if (!obj.session_id) {
-                        error("unexpected \"open_session\" response: " + resp);
-                        return;
-                    }
-
-                    sessionId = obj.session_id;
-                    onOpenSessionResponse();
-                } catch (e) {
-                    error("failed to process \"open_session\" response: " + e);
+            .onSuccess(getHandler("open session", function (obj) {
+                if (!obj.session_id) {
+                    error("unexpected \"open_session\" response: " + resp);
+                    return;
                 }
-            })
+
+                sessionId = obj.session_id;
+                onOpenSessionResponse();
+            }))
             .onError(getStdError("open session"));
 
         req.send();
@@ -241,6 +224,50 @@ QtObject {
         req.send();
     }
 
+    function joinWallet() {
+        //debug my
+        console.error("joining wallet with invite code: " + inviteCode);
+
+        var data = JSON.stringify({
+            "invite_code": inviteCode,
+            "multisig_info": mWallet.multisigInfo
+        });
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("join_wallet"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("join wallet", function (obj) {
+                getWalletInfo(infoHandler)
+            }))
+            .onError(getStdError("join wallet"));
+
+        req.send();
+    }
+
+    function infoHandler(info) {
+        //debug my
+        console.error("wallet info response: " + JSON.stringify(info));
+        if (signaturesRequired == 0) {
+            signaturesRequired = info.signers;
+        }
+
+        if (participantsCount == 0) {
+            participantsCount = info.participants;
+        }
+
+        changedKeys = info.changed_keys
+
+        timer.onTriggered.connect(exchangeKeys);
+        timer.start();
+
+        exchangeKeys();
+    }
+
     function getUrl(method) {
         return mwsUrl + apiVersion + method
     }
@@ -260,7 +287,12 @@ QtObject {
     function getHandler(name, func) {
         return function(resp) {
             try {
-                func(JSON.parse(resp));
+                if (resp) {
+                    func(JSON.parse(resp));
+                } else {
+                    func(null);
+                }
+
             } catch (e) {
                 console.error("failed to process " + name + " response: " + e);
                 error("failed to process " + name + " response: " + e);

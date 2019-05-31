@@ -263,5 +263,9 @@
         <file>MultisigSplash.qml</file>
         <file>js/Request.js</file>
         <file>components/MsMeta.qml</file>
+        <file>wizard/WizardJoinMultisigWallet1.qml</file>
+        <file>wizard/WizardJoinMultisigWallet2.qml</file>
+        <file>wizard/WizardJoinMultisigWallet3.qml</file>
+        <file>wizard/WizardJoinMultisigWallet4.qml</file>
     </qresource>
 </RCC>

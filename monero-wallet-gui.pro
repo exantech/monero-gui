@@ -491,6 +491,10 @@ DISTFILES += \
     components/SpinBox.qml \
     notes.txt \
     monero/src/wallet/CMakeLists.txt \
+    wizard/WizardJoinMultisigWallet1.qml \
+    wizard/WizardJoinMultisigWallet2.qml \
+    wizard/WizardJoinMultisigWallet3.qml \
+    wizard/WizardJoinMultisigWallet4.qml \
     wizard/WizardMultisignatureScheme.qml
 
 

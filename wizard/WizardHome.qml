@@ -153,6 +153,27 @@ Rectangle {
                     wizardStateView.state = "wizardCreateMultisigWallet1"
                 }
             }
+
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 3 * scaleRatio
+                Layout.bottomMargin: 3 * scaleRatio
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
+
+            WizardMenuItem {
+                headerText: qsTr("Join multisig wallet") + translationManager.emptyString
+                bodyText: qsTr("Be a part of something.") + translationManager.emptyString
+                imageIcon: "../images/restore-wallet.png"
+
+                onMenuClicked: {
+                    wizardController.restart();
+                    wizardController.createWallet();
+                    wizardStateView.state = "wizardJoinMultisigWallet1"
+                }
+            }
             //end debug my
 
             RowLayout {

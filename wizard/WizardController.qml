@@ -115,6 +115,8 @@ Rectangle {
 
     // multisig wallet variables
     property bool isMultisignature: false
+    property bool joiningMultisig: false
+    property string inviteCode
     property int signaturesCount: 0
     property int participantsCount: 0
 
@@ -151,6 +153,10 @@ Rectangle {
         property WizardCreateMultisigWallet2 wizardCreateMultisigWallet2View: WizardCreateMultisigWallet2 { }
         property WizardCreateMultisigWallet3 wizardCreateMultisigWallet3View: WizardCreateMultisigWallet3 { }
         property WizardCreateMultisigWallet4 wizardCreateMultisigWallet4View: WizardCreateMultisigWallet4 { }
+        property WizardJoinMultisigWallet1 wizardJoinMultisigWallet1View: WizardJoinMultisigWallet1 { }
+        property WizardJoinMultisigWallet2 wizardJoinMultisigWallet2View: WizardJoinMultisigWallet2 { }
+        property WizardJoinMultisigWallet3 wizardJoinMultisigWallet3View: WizardJoinMultisigWallet3 { }
+        property WizardJoinMultisigWallet4 wizardJoinMultisigWallet4View: WizardJoinMultisigWallet4 { }
         property WizardCreateWallet2 wizardCreateWallet2View: WizardCreateWallet2 { }
         property WizardCreateWallet3 wizardCreateWallet3View: WizardCreateWallet3 { }
         property WizardCreateWallet4 wizardCreateWallet4View: WizardCreateWallet4 { }
@@ -279,6 +285,22 @@ Rectangle {
             }, State {
                 name: "wizardCreateMultisigWallet4"
                 PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardCreateMultisigWallet4View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardJoinMultisigWallet1"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardJoinMultisigWallet1View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardJoinMultisigWallet2"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardJoinMultisigWallet2View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardJoinMultisigWallet3"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardJoinMultisigWallet3View }
+                PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
+            }, State {
+                name: "wizardJoinMultisigWallet4"
+                PropertyChanges { target: wizardStateView; currentView: wizardStateView.wizardJoinMultisigWallet4View }
                 PropertyChanges { target: wizardFlickable; contentHeight: wizardStateView.wizardModeRemoteNodeWarningView.childrenRect.height + wizardController.flickableHeightMargin }
             }
         ]
