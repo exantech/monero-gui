@@ -30,6 +30,8 @@
 #define OSHELPER_H
 
 #include <QObject>
+
+#include "readresult.h"
 /**
  * @brief The OSHelper class - exports to QML some OS-related functions
  */
@@ -42,6 +44,8 @@ public:
     Q_INVOKABLE QString temporaryFilename() const;
     Q_INVOKABLE QString temporaryPath() const;
     Q_INVOKABLE bool removeTemporaryWallet(const QString &walletName) const;
+    Q_INVOKABLE bool writeFile(const QString& data, const QString& filename) const;
+    Q_INVOKABLE ReadResult* readFile(const QString& filename) const;
 
 signals:
 

@@ -75,6 +75,9 @@ Rectangle {
         wizardController.remoteNodes = {};
 	wizardController.isMultisignature = false;
         wizardController.signaturesCount = 0;
+        wizardController.isMultisignature = false;
+        wizardController.joiningMultisig = false;
+        wizardController.inviteCode = '';
         wizardController.participantsCount = 0;
 
         disconnect();

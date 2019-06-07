@@ -38,6 +38,8 @@ HEADERS += \
     filter.h \
     clipboardAdapter.h \
     oscursor.h \
+    readresult.h \
+    src/libwalletqt/MultisigState.h \
     src/libwalletqt/WalletManager.h \
     src/libwalletqt/Wallet.h \
     src/libwalletqt/PendingTransaction.h \
@@ -73,6 +75,8 @@ SOURCES += main.cpp \
     filter.cpp \
     clipboardAdapter.cpp \
     oscursor.cpp \
+    readresult.cpp \
+    src/libwalletqt/MultisigState.cpp \
     src/libwalletqt/WalletManager.cpp \
     src/libwalletqt/Wallet.cpp \
     src/libwalletqt/PendingTransaction.cpp \

@@ -67,6 +67,7 @@
 #include "qt/mime.h"
 #include "src/qt/KeysFiles.h"
 #include "qt/prices.h"
+#include "readresult.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -281,6 +282,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<NetworkType::Type>();
     qmlRegisterType<NetworkType>("moneroComponents.NetworkType", 1, 0, "NetworkType");
+    qmlRegisterType<ReadResult>("oshelper.ReadResult", 1, 0, "ReadResult");
 
 #ifdef WITH_SCANNER
     qmlRegisterType<QrCodeScanner>("moneroComponents.QRCodeScanner", 1, 0, "QRCodeScanner");

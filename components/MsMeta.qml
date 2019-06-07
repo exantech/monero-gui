@@ -5,6 +5,7 @@ QtObject {
     property string state
     property int signaturesRequired
     property int participantsCount
+    property int keysRounds: 0
     property string metaPath
 
     function save(path) {
@@ -12,61 +13,39 @@ QtObject {
             path = metaPath;
         }
 
-        if (!path.startsWith("file://")) {
-            path = "file://" + path;
-        }
-
         metaPath = path;
-        var data = JSON.stringify({
+        var obj = {
             'state': state,
             'signaturesRequired': signaturesRequired,
-            'participantsCount': participantsCount
-        });
-
-        var success = false;
-        var req = new XMLHttpRequest();
-        req.onreadystatechange = function () {
-            if (req.readyState === 2) {
-                success = true;
-            }
+            'participantsCount': participantsCount,
+            'keysRounds': keysRounds
         };
 
-        req.open("PUT", path, false);
-        req.send(data);
+        var data = JSON.stringify(obj);
 
-        if (!success) {
+        if (!oshelper.writeFile(data, path)) {
             console.warn("failed to write to " + path + " file");
+            return false;
         }
 
-        return success;
+        return true;
     }
 
     function load(path) {
         try {
-            if (!path.startsWith("file://")) {
-                path = "file://" + path;
+            var res = oshelper.readFile(path);
+            if (res.error) {
+                console.warn("failed to read " + path + " file: " + res.errorString);
+                return false
             }
 
-            var success = false;
-            var req = new XMLHttpRequest();
-            req.onreadystatechange = function () {
-                if (req.readyState === 2) {
-                    success = true;
-                }
-            };
-
-            req.open("GET", path, false);
-            req.send(null);
-
-            if (!success) {
-                console.warn("failed to open " + path + " file");
-            }
-
-            var obj = JSON.parse(req.responseText);
+            var obj = JSON.parse(res.result);
             state = obj.state;
             signaturesRequired = obj.signaturesRequired;
             participantsCount = obj.participantsCount;
+            keysRounds = obj.keysRounds;
 
+            metaPath = path;
             loaded = true;
             return true;
         } catch (e) {

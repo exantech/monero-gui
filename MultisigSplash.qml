@@ -53,6 +53,14 @@ Item {
                     }
                 }
             }
+
+            MoneroComponents.StandardButton {
+                text: "Back"
+                onClicked: {
+                    MoneroComponents.MsProto.stop();
+                    appWindow.showWizard();
+                }
+            }
         }
 
         Clipboard { id: clipboard }
@@ -78,7 +86,24 @@ Item {
             multisigMeta.save();
         }
 
+        onJoinedToWallet: {
+            multisigMeta.state = "inProgress";
+            multisigMeta.save();
+
+            multisigWaitLabel.text = "Joined to wallet, exchanging with keys...";
+        }
+
+        onKeyExchangeRoundPassed: {
+            multisigMeta.keysRounds = newRoundNumber;
+            multisigMeta.save();
+
+            multisigWaitLabel.text = "Performing keys exchange round #" + (newRoundNumber + 1);
+        }
+
         onWalletCreated: {
+            multisigMeta.state = "ready";
+            multisigMeta.save();
+
             walletCreated()
         }
     }

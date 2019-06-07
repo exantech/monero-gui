@@ -16,11 +16,14 @@ QtObject {
     property int nonce: 1
     property bool newWallet: false
     property string inviteCode
+    property bool stopped: false
 
     property string sessionId
 
     signal sessionOpened
     signal inviteCodeReceived(string inviteCode)
+    signal keyExchangeRoundPassed(int newRoundNumber)
+    signal joinedToWallet
     signal walletCreated
     signal error(string msg)
 
@@ -29,6 +32,20 @@ QtObject {
         running: false
         repeat: true
         triggeredOnStart: false
+    }
+
+    function stop() {
+        //debug my
+        console.error("Stopping protocol");
+        timer.stop();
+        timer.onTriggered.disconnect(exchangeKeys);
+        stopped = true;
+        mWallet = null;
+        state = "";
+        signaturesRequired = 0;
+        participantsCount = 0;
+        sessionId = "";
+        inviteCode = "";
     }
 
     function start() {
@@ -44,11 +61,14 @@ QtObject {
             throw "multisignature protocol already started";
         }
 
-        openSession(mWallet.publicSpendKey);
+        stopped = false;
+        openSession();
     }
 
     function onOpenSessionResponse() {
         sessionOpened(); // emit signal
+        //debug my
+        console.error("session opened. current state: " + state)
 
         switch (state) {
         case "personal":
@@ -67,7 +87,12 @@ QtObject {
         }
     }
 
-    function openSession(signerKey) {
+    function openSession() {
+        var signerKey = mWallet.publicSpendKey;
+        if (changedKeys > 0) {
+            signerKey = mWallet.publicMultisigSignerKey;
+        }
+
         //debug my
         console.error("openning session. public key: " + signerKey);
         var data = JSON.stringify({
@@ -93,9 +118,6 @@ QtObject {
     }
 
     function createWallet(name) {
-        //debug my
-        console.error("sending create wallet request");
-
         var data = JSON.stringify({
             'signers': signaturesRequired,
             'participants': participantsCount,
@@ -105,26 +127,19 @@ QtObject {
 
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+        //debug my
+        console.error("create wallet. secret key: " + mWallet.secretSpendKey);
 
         var req = new Request.Request()
             .setMethod("POST")
             .setUrl(getUrl("create_wallet"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .setData(data)
-            .onSuccess(function(resp) {
-                //debug my
-                console.error("create wallet response: " + resp);
-                try {
-                    var obj = JSON.parse(resp);
-                    inviteCodeReceived(obj.invite_code);
-                    timer.onTriggered.connect(exchangeKeys);
-                    timer.start();
-                } catch (e) {
-                    //debug my
-                    console.error("failed to process response: " + e);
-                    error("failed to process response: " + e);
-                }
-            })
+            .onSuccess(getHandler("create wallet", function (obj) {
+                inviteCodeReceived(obj.invite_code);
+                timer.onTriggered.connect(exchangeKeys);
+                timer.start();
+            }))
             .onError(getStdError("create wallet"));
 
         req.send();
@@ -133,6 +148,8 @@ QtObject {
     function exchangeKeys() {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+        //debug my
+        console.error("exchange keys. changed keys: " + changedKeys);
 
         var url = getUrl("info/multisig");
         var name = "multisig info";
@@ -153,6 +170,55 @@ QtObject {
         req.send();
     }
 
+    function pushExtraMultisigInfo(ems) {
+        var data = JSON.stringify({
+            "extra_multisig_info": ems
+        });
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+        //debug my
+        console.error("push extra multisig info data: " + data);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("extra_multisig_info"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("push extra_multisig_info", function (obj) {
+                timer.start();
+            }))
+            .onError(getStdError("push extra_multisig_info"));
+
+        req.send();
+    }
+
+    function changePublicKey(oldSecretKey, callback) {
+        var data = JSON.stringify({
+            "public_key": mWallet.publicMultisigSignerKey
+        });
+
+        //debug my
+        console.error("changing public key: " + data);
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, oldSecretKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("change_public_key"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("change public key", function (obj) {
+                //debug my
+                console.error("public key changed successfully");
+                callback();
+            }))
+            .onError(getStdError("change public key"));
+
+        req.send();
+    }
+
     function processMultisigInfo(resp) {
         try {
             timer.stop();
@@ -160,18 +226,32 @@ QtObject {
             console.error("multisig info response: " + JSON.stringify(resp, null, ' '));
 
             if (resp.multisig_infos.length !== participantsCount) {
-                timer.start()
+                timer.start();
                 return
             }
 
+            var oldSecretKey = mWallet.secretSpendKey;
+
+            //debug my
+            console.error("accepting multisig info. current state: " + state)
             var multisig_infos = resp.multisig_infos.map(function (x) {return x.multisig_info});
             var extra_ms_info = mWallet.makeMultisig(multisig_infos, signaturesRequired);
-            changedKeys++
+            changedKeys++;
+            keyExchangeRoundPassed(changedKeys);
 
             if (extra_ms_info) {
-                exchangeKeys();
+                if (stopped) {
+                    console.log("multisignature protocol stopped");
+                    return;
+                }
+
+                changePublicKey(oldSecretKey, function () {
+                    pushExtraMultisigInfo(extra_ms_info);
+                });
             } else {
                 timer.onTriggered.disconnect(exchangeKeys);
+                //debug my
+                console.error("wallet created. secret key: " + mWallet.secretSpendKey);
                 walletCreated();
             }
         } catch (e) {
@@ -191,12 +271,23 @@ QtObject {
                 return
             }
 
+            //debug my
+            console.error("accepting extra multisig info. current state: " + state)
+            var oldSecretKey = mWallet.secretSpendKey;
             var multisig_infos = resp.extra_multisig_infos.map(function (x) {return x.extra_multisig_info});
             var extra_ms_info = mWallet.exchangeMultisigKeys(multisig_infos);
             changedKeys++
+            keyExchangeRoundPassed(changedKeys);
 
             if (extra_ms_info) {
-                exchangeKeys();
+                if (stopped) {
+                    console.log("multisignature protocol stopped");
+                    return;
+                }
+
+                changePublicKey(oldSecretKey, function () {
+                    pushExtraMultisigInfo(extra_ms_info);
+                });
             } else {
                 timer.onTriggered.disconnect(exchangeKeys);
                 walletCreated();
@@ -205,6 +296,34 @@ QtObject {
             timer.start();
             throw e;
         }
+    }
+
+    function joinWallet() {
+        //debug my
+        console.error("joining wallet with invite code: " + inviteCode);
+
+        var data = JSON.stringify({
+            "invite_code": inviteCode,
+            "multisig_info": mWallet.multisigInfo
+        });
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+        //debug my
+        console.error("join wallet. secret key: " + mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("join_wallet"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("join wallet", function (obj) {
+                joinedToWallet();
+                getWalletInfo(infoHandler);
+            }))
+            .onError(getStdError("join wallet"));
+
+        req.send();
     }
 
     function getWalletInfo(infoCb) {
@@ -224,31 +343,6 @@ QtObject {
         req.send();
     }
 
-    function joinWallet() {
-        //debug my
-        console.error("joining wallet with invite code: " + inviteCode);
-
-        var data = JSON.stringify({
-            "invite_code": inviteCode,
-            "multisig_info": mWallet.multisigInfo
-        });
-
-        var nonce = nextNonce();
-        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
-
-        var req = new Request.Request()
-            .setMethod("POST")
-            .setUrl(getUrl("join_wallet"))
-            .setHeaders(getHeaders(sessionId, nonce, signature))
-            .setData(data)
-            .onSuccess(getHandler("join wallet", function (obj) {
-                getWalletInfo(infoHandler)
-            }))
-            .onError(getStdError("join wallet"));
-
-        req.send();
-    }
-
     function infoHandler(info) {
         //debug my
         console.error("wallet info response: " + JSON.stringify(info));
@@ -260,10 +354,15 @@ QtObject {
             participantsCount = info.participants;
         }
 
-        changedKeys = info.changed_keys
-
         timer.onTriggered.connect(exchangeKeys);
+        //debug my
+        console.error("info handler: timer.start");
         timer.start();
+
+        if (stopped) {
+            console.log("multisignature protocol stopped");
+            return;
+        }
 
         exchangeKeys();
     }
@@ -287,6 +386,11 @@ QtObject {
     function getHandler(name, func) {
         return function(resp) {
             try {
+                if (stopped) {
+                    console.log("multisignature protocol stopped");
+                    return
+                }
+
                 if (resp) {
                     func(JSON.parse(resp));
                 } else {

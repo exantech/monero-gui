@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QString>
+#include <QFile>
 
 OSHelper::OSHelper(QObject *parent) : QObject(parent)
 {
@@ -61,4 +62,36 @@ bool OSHelper::removeTemporaryWallet(const QString &fileName) const
 QString OSHelper::temporaryPath() const
 {
     return QDir::tempPath();
+}
+
+bool OSHelper::writeFile(const QString& data, const QString& filename) const
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return false;
+    }
+
+    QTextStream stream(&file);
+    stream << data;
+    file.close();
+
+    return true;
+}
+
+ReadResult* OSHelper::readFile(const QString& filename) const {
+    ReadResult* res = new ReadResult();
+
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly)) {
+        res->error = true;
+        res->errorString = file.errorString();
+        return res;
+    }
+
+    res->error = false;
+    QTextStream stream(&file);
+    stream >> res->result;
+    file.close();
+
+    return res;
 }

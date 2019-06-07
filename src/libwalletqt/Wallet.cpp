@@ -983,12 +983,13 @@ Wallet::~Wallet()
     delete m_subaddressAccount;
     m_subaddressAccount = NULL;
     //Monero::WalletManagerFactory::getWalletManager()->closeWallet(m_walletImpl);
-    if(status() == Status_Critical)
+    if(status() == Status_Critical) {
         qDebug("Not storing wallet cache");
-    else if( m_walletImpl->store(""))
+    } else if( m_walletImpl->store("")) {
         qDebug("Wallet cache stored successfully");
-    else
+    } else {
         qDebug("Error storing wallet cache");
+    }
     delete m_walletImpl;
     m_walletImpl = NULL;
     delete m_walletListener;
@@ -996,7 +997,7 @@ Wallet::~Wallet()
     qDebug("m_walletImpl deleted");
 }
 
-QString Wallet::getMultisigInfo() {
+QString Wallet::getMultisigInfo() const {
     return QString::fromStdString(m_walletImpl->getMultisigInfo());
 }
 
@@ -1020,4 +1021,13 @@ QString Wallet::exchangeMultisigKeys(const QVector<QString>& info) {
     }
 
     return QString::fromStdString(m_walletImpl->exchangeMultisigKeys(ms));
+}
+
+QString Wallet::getPublicMultisigSignerKey() const {
+    return QString::fromStdString(m_walletImpl->publicMultisigSignerKey());
+}
+
+MultisigState* Wallet::multisigState() {
+    auto m = m_walletImpl->multisig();
+    return new MultisigState(m, this);
 }

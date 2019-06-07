@@ -267,6 +267,8 @@ ApplicationWindow {
         userInActivityTimer.running = true;
         simpleModeConnectionTimer.running = true;
 
+        //debug my
+        console.error("checking if wallet is defined");
         // wallet already opened with wizard, we just need to initialize it
         if (typeof wizard.m_wallet !== 'undefined') {
             console.log("using wizard wallet")
@@ -317,6 +319,8 @@ ApplicationWindow {
         }
 
         if (multisigMeta.load(metaPath + ".meta")) {
+            //debug my
+            console.error("multisig meta file loaded, state: " + multisigMeta.state);
             if (multisigMeta.state !== "ready") {
                 appWindow.viewState = "multisigSplash";
             }
@@ -344,6 +348,9 @@ ApplicationWindow {
             middlePanel.getProofClicked.disconnect(handleGetProof);
             middlePanel.checkProofClicked.disconnect(handleCheckProof);
         }
+
+        MoneroComponents.MsProto.stop();
+        multisigMeta.loaded = false;
 
         currentWallet = undefined;
         walletManager.closeWallet();
@@ -604,16 +611,18 @@ ApplicationWindow {
             MoneroComponents.MsProto.mWallet = currentWallet
             MoneroComponents.MsProto.signaturesRequired = multisigMeta.signaturesRequired
             MoneroComponents.MsProto.participantsCount = multisigMeta.participantsCount
+            MoneroComponents.MsProto.changedKeys = multisigMeta.keysRounds;
             MoneroComponents.MsProto.start()
+
+            if (multisigMeta.state !== "ready") {
+                rootItem.state = "multisigSplash"
+            }
         }
     }
 
     //debug my
     Connections {
         target: MoneroComponents.MsProto
-        onSessionOpened: {
-            notifier.show("Session opened");
-        }
 
         onError: {
             notifier.show(msg);

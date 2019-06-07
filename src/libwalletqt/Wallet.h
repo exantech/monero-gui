@@ -39,6 +39,7 @@
 #include "PendingTransaction.h" // we need to have an access to the PendingTransaction::Priority enum here;
 #include "UnsignedTransaction.h"
 #include "NetworkType.h"
+#include "MultisigState.h"
 
 namespace Monero {
     class Wallet; // forward declaration
@@ -84,6 +85,8 @@ class Wallet : public QObject
     Q_PROPERTY(QString daemonLogPath READ getDaemonLogPath CONSTANT)
     Q_PROPERTY(quint64 walletCreationHeight READ getWalletCreationHeight WRITE setWalletCreationHeight NOTIFY walletCreationHeightChanged)
     Q_PROPERTY(QString multisigInfo READ getMultisigInfo)
+    Q_PROPERTY(QString publicMultisigSignerKey READ getPublicMultisigSignerKey)
+    Q_PROPERTY(MultisigState * multisigState READ multisigState)
 
 public:
 
@@ -329,9 +332,11 @@ public:
     Q_INVOKABLE void segregationHeight(quint64 height);
     Q_INVOKABLE void keyReuseMitigation2(bool mitigation);
 
-    Q_INVOKABLE QString getMultisigInfo();
+    Q_INVOKABLE QString getMultisigInfo() const;
     Q_INVOKABLE QString makeMultisig(const QVector<QString>& info, quint32 threshold);
     Q_INVOKABLE QString exchangeMultisigKeys(const QVector<QString>& info);
+    Q_INVOKABLE QString getPublicMultisigSignerKey() const;
+    Q_INVOKABLE MultisigState * multisigState();
 
     // TODO: setListenter() when it implemented in API
 signals:
