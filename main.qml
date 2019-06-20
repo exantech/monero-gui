@@ -1804,6 +1804,15 @@ ApplicationWindow {
                 updateBalance();
             }
 
+            onProposalsClicked: {
+                middlePanel.state = "Proposals";
+                middlePanel.flickable.contentY = 0;
+                if(isMobile) {
+                    hideMenu();
+                }
+                updateBalance();
+            }
+
             onMiningClicked: {
                 middlePanel.state = "Mining";
                 middlePanel.flickable.contentY = 0;

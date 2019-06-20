@@ -18,6 +18,10 @@ QtObject {
     property string inviteCode
     property bool stopped: false
 
+    property int prevTxCount //???
+    property int prevProposalsCount //???
+    property int lastN: 0
+
     property string sessionId
 
     signal sessionOpened
@@ -35,10 +39,18 @@ QtObject {
     }
 
     function stop() {
+        if (stopped) {
+            return
+        }
+
         //debug my
         console.error("Stopping protocol");
         timer.stop();
         timer.onTriggered.disconnect(exchangeKeys);
+        if (mWallet) {
+            mWallet.refreshed.disconnect(onWalletRefreshed);
+        }
+
         stopped = true;
         mWallet = null;
         state = "";
@@ -60,6 +72,8 @@ QtObject {
         if (sessionId != "") {
             throw "multisignature protocol already started";
         }
+
+        mWallet.refreshed.connect(onWalletRefreshed)
 
         stopped = false;
         openSession();
@@ -252,7 +266,9 @@ QtObject {
                 timer.onTriggered.disconnect(exchangeKeys);
                 //debug my
                 console.error("wallet created. secret key: " + mWallet.secretSpendKey);
+                state = "ready";
                 walletCreated();
+                changePublicKey(oldSecretKey, function () { });
             }
         } catch (e) {
             timer.start();
@@ -290,7 +306,9 @@ QtObject {
                 });
             } else {
                 timer.onTriggered.disconnect(exchangeKeys);
+                state = "ready";
                 walletCreated();
+                changePublicKey(oldSecretKey, function () { });
             }
         } catch (e) {
             timer.start();
@@ -327,9 +345,6 @@ QtObject {
     }
 
     function getWalletInfo(infoCb) {
-        //debug my
-        console.error("sending info/wallet request");
-
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
@@ -355,8 +370,6 @@ QtObject {
         }
 
         timer.onTriggered.connect(exchangeKeys);
-        //debug my
-        console.error("info handler: timer.start");
         timer.start();
 
         if (stopped) {
@@ -365,6 +378,181 @@ QtObject {
         }
 
         exchangeKeys();
+    }
+
+    function onWalletRefreshed() {
+        if (state !== "ready") {
+            return;
+        }
+
+        if (!mWallet.synchronized) {
+            return
+        }
+
+//        var currentTxCount = mWallet.history.count;
+//        if (currentTxCount > prevTxCount) {
+//            prevTxCount = currentTxCount
+//            // need export
+//        }
+
+        getProposals();
+    }
+
+    function getProposals() {
+        //debug my
+        console.error("Getting proposals");
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("GET")
+            .setUrl(getUrl("tx_proposals"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("transaction proposals", function (props) {
+                var hasActive = false;
+                for (var i = 0; i < props.length; i++) {
+                    var prop = props[i];
+                    if (prop.status === "signing") {
+                        hasActive = true;
+                        break;
+                    }
+                }
+
+                if (hasActive) {
+                    //debug my
+                    console.error("has active proposals");
+                    return;
+                }
+
+                var txCount = mWallet.history.count;
+                if (txCount > 0) {
+                    var lastTx = mWallet.history.transaction(txCount - 1);
+                    if (lastTx.confirmations === 0) {
+                        //debug my
+                        console.error("have at least one unconfimed transaction");
+                        return;
+                    }
+                }
+
+                var n = props.length + txCount;
+                if (n > lastN) {
+                    // outputs exchange needed
+                }
+            }))
+            .onError(getStdError("tx_proposals"));
+
+        req.send();
+    }
+
+    function exchangeOutputs(n) {
+        //debug my
+        console.error("trying to exchange outputs");
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("HEAD")
+            .setUrl(getUrl("outputs_extended/" + n))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("check outputs_extended", function () {
+                sendOutputs(n);
+            }))
+            .onError(function (status, text) {
+                switch (status) {
+                case 0:
+                    console.warn("can't exchange outputs: to connection to server");
+                    break;
+                case 400:
+                    console.log("can't exchange outputs: revision is too small - " + n);
+                    //debug my
+                    console.error("can't exchange outputs: revision is too small - " + n);
+                    break;
+                case 409:
+                    console.log("can't exchange outputs: outputs from this wallet have already been sent");
+                    //debug my
+                    console.error("can't exchange outputs: outputs from this wallet have already been sent");
+                    break;
+                case 412:
+                    console.log("can't exchange outputs: there is active proposal");
+                    //debug my
+                    console.error("can't exchange outputs: there is active proposal");
+                    break;
+                default:
+                    console.warn("can't exchange outputs: unknown HTTP status - " + status);
+                    break;
+                }
+            });
+    }
+
+    function sendOutputs(n) {
+        //debug my
+        console.error("sending outputs");
+        var outputs = mWallet.exportMultisigImages();
+        var data = JSON.stringify({
+            "outputs": outputs
+        });
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("outputs_extended/" + n))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("export outputs", function () {
+                console.log("outputs exported successfully");
+                lastN = n;
+                //debug my
+                console.error("outputs exported successfully");
+                importOutputs(n);
+            }))
+            .onError(getStdError("export outputs"));
+
+        req.send();
+    }
+
+    function importOutputs(n) {
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("GET")
+            .setUrl(getUrl("outputs_extended"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("import outputs", function (obj) {
+                var outputs = obj.outputs;
+
+                var hasHigherRevision = false;
+                var toImport = [];
+                for (i = 0; i < outputs.length; i++) {
+                    var out = outputs[i];
+                    if (out[1] > n) {
+                        hasHigherRevision = true;
+                        console.warn("Higher outputs revision found. Max: " + out[1] + ", we have: " + n);
+                        return;
+                    }
+
+                    if (out[1] === n) {
+                        toImport.push(out[0]);
+                    }
+                }
+
+                if (toImport.length < signaturesRequired) {
+                    console.log("Not enough participants exported their outputs (" + toImport + " of at least " + signaturesRequired + "). Postponing import");
+                    //debug my
+                    console.error("Not enough participants exported their outputs (" + toImport + " of at least " + signaturesRequired + "). Postponing import");
+                    return;
+                }
+
+                var imported = mWallet.importMultisigImages(toImport); //TODO: exception???
+                console.log("imported " + imported + " outputs of " + participantsCount + " participants");
+                //debug my
+                console.error("imported " + imported + " outputs of " + participantsCount + " participants");
+            }))
+            .onError(getStdError("import outputs"));
+
+        req.send();
     }
 
     function getUrl(method) {

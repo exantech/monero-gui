@@ -68,6 +68,7 @@ Rectangle {
     signal keysClicked()
     signal merchantClicked()
     signal accountClicked()
+    signal proposalsClicked()
 
     function selectItem(pos) {
         menuColumn.previousButton.checked = false
@@ -515,6 +516,32 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.leftMargin: 16
+            }
+
+            // ------------- Proposals tab ---------------
+
+            MoneroComponents.MenuButton {
+                id: proposalsButton
+                anchors.left: parent.left
+                anchors.right: parent.right
+                text: qsTr("Proposals") + translationManager.emptyString
+                symbol: qsTr("P") + translationManager.emptyString
+                dotColor: "#FF4F41"
+                under: transferButton
+                onClicked: {
+                    parent.previousButton.checked = false
+                    parent.previousButton = proposalsButton
+                    panel.addressBookClicked()
+                }
+            }
+
+            Rectangle {
+                visible: proposalsButton.present
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 16
+                color: "#313131"
+                height: 1
             }
 
             // ------------- Receive tab ---------------

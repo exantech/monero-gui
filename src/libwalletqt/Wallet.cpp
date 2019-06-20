@@ -1031,3 +1031,24 @@ MultisigState* Wallet::multisigState() {
     auto m = m_walletImpl->multisig();
     return new MultisigState(m, this);
 }
+
+QString Wallet::exportMultisigImages() {
+    std::string ki;
+    if (!m_walletImpl->exportMultisigImages(ki)) {
+        return QString();
+    }
+
+    return QString::fromStdString(ki);
+}
+
+quint32 Wallet::importMultisigImages(const QVector<QString>& images) {
+    std::vector<std::string> img;
+    img.reserve(images.size());
+
+    for (const auto& i: images) {
+        img.push_back(i.toStdString());
+    }
+
+    quint32 imported = m_walletImpl->importMultisigImages(img);
+    return imported;
+}

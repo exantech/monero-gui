@@ -332,11 +332,14 @@ public:
     Q_INVOKABLE void segregationHeight(quint64 height);
     Q_INVOKABLE void keyReuseMitigation2(bool mitigation);
 
+    // Multisig
     Q_INVOKABLE QString getMultisigInfo() const;
     Q_INVOKABLE QString makeMultisig(const QVector<QString>& info, quint32 threshold);
     Q_INVOKABLE QString exchangeMultisigKeys(const QVector<QString>& info);
     Q_INVOKABLE QString getPublicMultisigSignerKey() const;
     Q_INVOKABLE MultisigState * multisigState();
+    Q_INVOKABLE QString exportMultisigImages();
+    Q_INVOKABLE quint32 importMultisigImages(const QVector<QString>& images);
 
     // TODO: setListenter() when it implemented in API
 signals:
