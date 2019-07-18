@@ -1052,3 +1052,7 @@ quint32 Wallet::importMultisigImages(const QVector<QString>& images) {
     quint32 imported = m_walletImpl->importMultisigImages(img);
     return imported;
 }
+
+bool Wallet::hasMultisigPartialKeyImages() {
+    return m_walletImpl->hasMultisigPartialKeyImages();
+}

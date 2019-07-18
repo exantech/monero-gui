@@ -13,9 +13,8 @@ GridLayout {
     columns: (isMobile) ? 1 : 2
     Layout.fillWidth: true
     Layout.maximumWidth: wizardController.wizardSubViewWidth
-//    Layout.alignment: Qt.AlignHCenter
     Layout.alignment: Qt.AlignLeft
-    columnSpacing: 32 * scaleRatio
+    columnSpacing: 60
 
     ColumnLayout {
         anchors.left: parent.left

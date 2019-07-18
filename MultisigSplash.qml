@@ -37,15 +37,17 @@ Item {
 
                 Label {
                     id: multisigInviteCode
-                    Layout.fillWidth: true
+                    anchors.left: parent.left
                     color: MoneroComponents.Style.defaultFontColor
                     font.pixelSize: 16 * scaleRatio
                 }
 
                 MoneroComponents.IconButton {
                     id: copyButton
-                    imageSource: "../images/dropdownCopy@2x.png"
+                    image: "qrc:///images/copy.svg"
                     anchors.right: parent.right
+                    width: 12
+                    height: 15
 
                     onClicked: {
                         clipboard.setText(multisigSplash.walletInviteCode);
@@ -81,29 +83,17 @@ Item {
             multisigWaitLabel.text = "Share invite code";
             multisigInviteCode.text = "Invite code: <b>" + shortInviteCode(inviteCode, 16) + "</b>";
             walletInviteCode = inviteCode
-
-            multisigMeta.state = "inProgress";
-            multisigMeta.save();
         }
 
         onJoinedToWallet: {
-            multisigMeta.state = "inProgress";
-            multisigMeta.save();
-
             multisigWaitLabel.text = "Joined to wallet, exchanging with keys...";
         }
 
         onKeyExchangeRoundPassed: {
-            multisigMeta.keysRounds = newRoundNumber;
-            multisigMeta.save();
-
             multisigWaitLabel.text = "Performing keys exchange round #" + (newRoundNumber + 1);
         }
 
         onWalletCreated: {
-            multisigMeta.state = "ready";
-            multisigMeta.save();
-
             walletCreated()
         }
     }

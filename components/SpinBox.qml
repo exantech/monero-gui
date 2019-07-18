@@ -10,8 +10,9 @@ SpinBox {
 
     id: spinBox
     value: 2
-
     editable: false
+
+    Layout.preferredWidth: 80
 
     contentItem: TextInput {
         z: 2
@@ -31,7 +32,7 @@ SpinBox {
         color: "transparent"
         anchors.left: parent.left
         height: parent.height
-        width: 30 * scaleRatio
+        width: 25
 
         Image {
             source: "qrc:///images/minus-white.png"
@@ -43,7 +44,7 @@ SpinBox {
         color: "transparent"
         anchors.right: parent.right
         height: parent.height
-        width: 30 * scaleRatio
+        width: 25
 
         Image {
             source: "qrc:///images/plus-white.png"
@@ -52,7 +53,6 @@ SpinBox {
     }
 
     background: Rectangle {
-        implicitWidth: 140 * scaleRatio
         color: "transparent"
         border.width: 1
         border.color: MoneroComponents.Style.inputBorderColorInActive

@@ -340,6 +340,7 @@ public:
     Q_INVOKABLE MultisigState * multisigState();
     Q_INVOKABLE QString exportMultisigImages();
     Q_INVOKABLE quint32 importMultisigImages(const QVector<QString>& images);
+    Q_INVOKABLE bool hasMultisigPartialKeyImages();
 
     // TODO: setListenter() when it implemented in API
 signals:

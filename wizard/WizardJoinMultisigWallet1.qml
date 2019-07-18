@@ -63,69 +63,6 @@ Rectangle {
                 id: walletInput
             }
 
-            ColumnLayout {
-                spacing: 0
-
-                Layout.topMargin: 10 * scaleRatio
-                Layout.fillWidth: true
-
-                MoneroComponents.LineEditMulti {
-                    id: seed
-
-                    spacing: 0
-                    inputPaddingLeft: 16 * scaleRatio
-                    inputPaddingRight: 16 * scaleRatio
-                    inputPaddingTop: 20 * scaleRatio
-                    inputPaddingBottom: 20 * scaleRatio
-                    inputRadius: 0
-
-                    fontSize: 18 * scaleRatio
-                    fontBold: true
-                    wrapMode: Text.WordWrap
-                    backgroundColor: "red"
-                    addressValidation: false
-                    labelText: qsTr("Mnemonic seed") + translationManager.emptyString
-                    labelFontSize: 14 * scaleRatio
-                    copyButton: false
-                    readOnly: true
-
-                    placeholderText: qsTr("-") + translationManager.emptyString
-                    text: wizardController.walletOptionsSeed
-                }
-
-                MoneroComponents.WarningBox {
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: 1
-                        color: MoneroComponents.Style.inputBorderColorInActive
-                    }
-
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.left: parent.left
-                        anchors.bottom: parent.bottom
-                        height: 1
-                        color: MoneroComponents.Style.inputBorderColorInActive
-                    }
-
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: 1
-                        color: MoneroComponents.Style.inputBorderColorInActive
-                    }
-
-                    radius: 0
-                    border.color: MoneroComponents.Style.inputBorderColorInActive
-                    border.width: 0
-
-                    text: qsTr("This seed is <b>very</b> important to write down and keep secret. It is all you need to backup and restore your wallet.") + translationManager.emptyString
-                }
-            }
-
             RowLayout {
                 id: addressLineRow
                 Layout.fillWidth: true

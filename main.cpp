@@ -68,6 +68,7 @@
 #include "src/qt/KeysFiles.h"
 #include "qt/prices.h"
 #include "readresult.h"
+#include "MsMeta.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -85,6 +86,7 @@ bool isMac = false;
 bool isLinux = false;
 bool isDesktop = false;
 bool isOpenGL = true;
+
 
 int main(int argc, char *argv[])
 {
@@ -276,6 +278,8 @@ int main(int argc, char *argv[])
     qmlRegisterUncreatableType<SubaddressAccount>("moneroComponents.SubaddressAccount", 1, 0, "SubaddressAccount",
                                                         "SubaddressAccount can't be instantiated directly");
 
+    qmlRegisterUncreatableType<MsMeta>("moneroComponents.MsMeta", 1, 0, "MsMeta", "MsMeta can't be instantiated directly");
+
     qRegisterMetaType<PendingTransaction::Priority>();
     qRegisterMetaType<TransactionInfo::Direction>();
     qRegisterMetaType<TransactionHistoryModel::TransactionInfoRole>();
@@ -294,6 +298,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("globalCursor", &cursor);
     OSHelper osHelper;
     engine.rootContext()->setContextProperty("oshelper", &osHelper);
+    MsMetaFactory metaFactory;
+    engine.rootContext()->setContextProperty("metaFactory", &metaFactory);
 
     engine.addImportPath(":/fonts");
 

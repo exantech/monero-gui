@@ -39,6 +39,7 @@ HEADERS += \
     clipboardAdapter.h \
     oscursor.h \
     readresult.h \
+    src/libwalletqt/MsMeta.h \
     src/libwalletqt/MultisigState.h \
     src/libwalletqt/WalletManager.h \
     src/libwalletqt/Wallet.h \
@@ -76,6 +77,7 @@ SOURCES += main.cpp \
     clipboardAdapter.cpp \
     oscursor.cpp \
     readresult.cpp \
+    src/libwalletqt/MsMeta.cpp \
     src/libwalletqt/MultisigState.cpp \
     src/libwalletqt/WalletManager.cpp \
     src/libwalletqt/Wallet.cpp \
@@ -490,7 +492,6 @@ OTHER_FILES += \
 
 DISTFILES += \
     MultisigSplash.qml \
-    components/MsMeta.qml \
     components/MsProto.qml \
     components/SpinBox.qml \
     notes.txt \

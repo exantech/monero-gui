@@ -219,7 +219,7 @@ if test -z "$CPU_CORE_COUNT"; then
   CPU_CORE_COUNT=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 fi
 
-CPU_CORE_COUNT=2
+CPU_CORE_COUNT=1
 
 # Build libwallet_merged
 pushd $MONERO_DIR/build/$BUILD_TYPE/src/wallet

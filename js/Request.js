@@ -21,7 +21,7 @@ function Request() {
 
         this.req.onreadystatechange = function () {
             if (this.req.readyState === 4) { //request done
-                if (this.req.status === 200 || this.req.status === 204) {
+                if (this.req.status >= 200 && this.req.status < 300) {
                     if (this.successCb) {
                         this.successCb(this.req.responseText);
                     }
