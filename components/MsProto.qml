@@ -5,7 +5,7 @@ import QtQuick 2.0
 import "../js/Request.js" as Request
 
 QtObject {
-    property string mwsUrl: "https://mws-stage.exan.tech/"
+    property string mwsUrl: "http://mws-stage.exan.tech/"
     property string apiVersion: "api/v1/"
 
     property var meta
@@ -400,17 +400,34 @@ QtObject {
             return;
         }
 
-//        var currentTxCount = mWallet.history.count;
-//        if (currentTxCount > prevTxCount) {
-//            prevTxCount = currentTxCount
-//            // need export
-//        }
-
-        getProposals();
+        startOutputsExchange();
     }
 
-    function getProposals() {
+    function startOutputsExchange() {
         exchangingOutputs = true;
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("GET")
+            .setUrl(getUrl("revision"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("static revision number", function (obj) {
+                //debug my
+                console.error("static revision number: " + obj.revision);
+                getProposals(obj.revision);
+            }))
+            .onError(function (status, text) {
+                getStdError("revision")(status, text);
+                exchangingOutputs = false;
+            });
+
+        req.send();
+    }
+
+    function getProposals(staticRevision) {
+
         //debug my
         console.error("Getting proposals");
 
@@ -441,20 +458,22 @@ QtObject {
                     return;
                 }
 
-                var txCount = mWallet.history.count;
-                //debug my
-                console.error("tx count: " + txCount);
-                if (txCount > 0) {
-                    var lastTx = mWallet.history.transaction(txCount - 1);
-                    if (lastTx.confirmations === 0) {
+                var txCount = 0;
+                for (i = 0; i < mWallet.history.count; i++) {
+                    var tx = mWallet.history.transaction(i)
+                    if (tx.confirmations === 0) {
                         //debug my
                         console.error("have at least one unconfimed transaction");
                         exchangingOutputs = false;
                         return;
                     }
+
+                    if (tx.direction === 0) {
+                        txCount += 1;
+                    }
                 }
 
-                var n = txCount;
+                var n = staticRevision + txCount;
                 if (props.length) {
                     n += props.length;
                 }
@@ -463,6 +482,8 @@ QtObject {
                 console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
                 if (n > meta.lastOutputsRevision) {
                     exchangeOutputs(n);
+                } else if (meta.lastOutputsImported === 0) {
+                    importOutputs(meta.lastOutputsRevision);
                 } else {
                     exchangingOutputs = false;
                     //debug my
@@ -493,7 +514,8 @@ QtObject {
             .onError(function (status, text) {
                 switch (status) {
                 case 0:
-                    console.warn("can't exchange outputs: no connection to server");
+                    //stupid JS returns 0 status code if this request fails with 4xx code
+                    console.warn("can't exchange outputs");
                     break;
                 case 400:
                     console.log("can't exchange outputs: revision is too small - " + n);
@@ -540,9 +562,11 @@ QtObject {
             .onSuccess(getHandler("export outputs", function () {
                 console.log("outputs exported successfully");
                 meta.lastOutputsRevision = n;
+                meta.lastOutputsImported = 0;
+                meta.save();
+                exchangingOutputs = false;
                 //debug my
                 console.error("outputs exported successfully");
-                importOutputs(n);
             }))
             .onError(function (status, text) {
                 getStdError("export outputs")(status, text);
@@ -572,13 +596,15 @@ QtObject {
             }
 
             if (toImport.length < meta.signaturesRequired) {
-                console.log("Not enough participants exported their outputs (" + toImport + " of at least " + meta.signaturesRequired + "). Postponing import");
+                console.log("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
                 //debug my
-                console.error("Not enough participants exported their outputs (" + toImport + " of at least " + meta.signaturesRequired + "). Postponing import");
+                console.error("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
                 return;
             }
 
             var imported = mWallet.importMultisigImages(toImport); //TODO: exception???
+            meta.lastOutputsImported = toImport.length;
+            meta.save();
             console.log("imported " + imported + " outputs of " + meta.participantsCount + " participants");
             //debug my
             console.error("imported " + imported + " outputs of " + meta.participantsCount + " participants");

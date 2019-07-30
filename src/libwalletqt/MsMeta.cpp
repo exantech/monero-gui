@@ -71,10 +71,10 @@ bool MsMeta::save(QString path) {
     obj.insert("participantsCount", static_cast<int>(participantsCount));
     obj.insert("keysRounds", static_cast<int>(keysRounds));
     obj.insert("lastOutputsRevision", static_cast<int>(lastOutputsRevision));
+    obj.insert("lastOutputsImported", static_cast<int>(lastOutputsImported));
 
     QJsonDocument doc(obj);
     auto bytes = doc.toJson(QJsonDocument::Compact);
-
     return writeFile(bytes, metaPath);
 }
 
@@ -99,8 +99,8 @@ bool MsMeta::load(QString path) {
         signaturesRequired = getMandatoryUint32(obj, "signaturesRequired");
         participantsCount = getMandatoryUint32(obj, "participantsCount");
         keysRounds = getMandatoryUint32(obj, "keysRounds");
-//        lastOutputsRevision = getMandatoryUint32(obj, "lastOutputsRevision");
         lastOutputsRevision = obj["lastOutputsRevision"].toInt(0);
+        lastOutputsImported = obj["lastOutputsImported"].toInt(0);
 
         return true;
     } catch (const std::exception& ex) {
@@ -160,4 +160,12 @@ void MsMeta::setKeysRounds(quint32 k) {
 
 void MsMeta::setLastOutputsRevision(quint32 l) {
     lastOutputsRevision = l;
+}
+
+quint32 MsMeta::getLastOutputsImported() const {
+    return lastOutputsImported;
+}
+
+void MsMeta::setLastOutputsImported(quint32 l) {
+    lastOutputsImported = l;
 }

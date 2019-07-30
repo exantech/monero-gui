@@ -19,6 +19,7 @@ class MsMeta: public QObject {
     Q_PROPERTY(quint32 participantsCount READ getParticipantsCount WRITE setParticipantsCount)
     Q_PROPERTY(quint32 keysRounds READ getKeysRounds WRITE setKeysRounds)
     Q_PROPERTY(quint32 lastOutputsRevision READ getLastOutputsRevision WRITE setLastOutputsRevision)
+    Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported)
     Q_PROPERTY(QString path READ getPath WRITE setPath)
 
 public:
@@ -47,6 +48,9 @@ public:
     Q_INVOKABLE quint32 getLastOutputsRevision() const;
     Q_INVOKABLE void setLastOutputsRevision(quint32 l);
 
+    Q_INVOKABLE quint32 getLastOutputsImported() const;
+    Q_INVOKABLE void setLastOutputsImported(quint32 l);
+
 private:
     bool loaded;
     QString metaPath;
@@ -55,4 +59,5 @@ private:
     quint32 participantsCount = 0;
     quint32 keysRounds = 0;
     quint32 lastOutputsRevision = 0;
+    quint32 lastOutputsImported = 0;
 };
