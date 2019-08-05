@@ -1056,3 +1056,26 @@ quint32 Wallet::importMultisigImages(const QVector<QString>& images) {
 bool Wallet::hasMultisigPartialKeyImages() {
     return m_walletImpl->hasMultisigPartialKeyImages();
 }
+
+PendingTransaction * Wallet::restoreMultisigTx(const QString &signData) {
+    Monero::PendingTransaction * ptImpl = m_walletImpl->restoreMultisigTransaction(signData.toStdString());
+    if (m_walletImpl->status() != Monero::Wallet::Status_Ok) {
+        qWarning() << "failed to restore multisig transaction: " << QString::fromStdString(m_walletImpl->errorString());
+        return nullptr;
+    }
+
+    PendingTransaction * result = new PendingTransaction(ptImpl, nullptr);
+    return result;
+}
+
+void Wallet::restoreMultisigTxAsync(const QString &signData) {
+    QFuture<PendingTransaction*> future = QtConcurrent::run(this, &Wallet::restoreMultisigTx, signData);
+    QFutureWatcher<PendingTransaction*> * watcher = new QFutureWatcher<PendingTransaction*>();
+
+    connect(watcher, &QFutureWatcher<PendingTransaction*>::finished, this, [this, watcher]() {
+        QFuture<PendingTransaction*> future = watcher->future();
+        watcher->deleteLater();
+        emit multisigTxRestored(future.result());
+    });
+    watcher->setFuture(future);
+}

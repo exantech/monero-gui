@@ -1025,6 +1025,46 @@ ApplicationWindow {
         currentWallet.commitTransactionAsync(transaction);
     }
 
+    function handleMultisigTransactionConfirmed() {
+        appWindow.showProcessingSplash(qsTr("Sending transaction proposal..."));
+
+        console.log("getting multisig sign data");
+        var signData = transaction.multisigSignData();
+        if (transaction.status != 0) {
+            console.error("failed to get multisig sign data: " + transaction.errorString);
+            hideProcessingSplash();
+            return;
+        }
+
+        var proposal = {
+            "amount": transaction.amount,
+            "fee": transaction.fee,
+            "description": "test proposal", //TODO: make proposal description
+            "signed_transaction": signData,
+            "destination_address": "57Fa4LX3xZF2M6iZAcaHPneqEJLyG5xx83CYvoiwuJ6HePhz2xwo4HBKLTNEDTRWDchMCj23b4ELDQaRtuRWCC161SzhEnA", //TODO: save destination address
+        };
+
+        MoneroComponents.MsProto.sendProposalAsync(proposal);
+    }
+
+    function onProposalSent(id) {
+        //debug my
+        console.error("Proposal " + id + " successfully sent");
+        appWindow.hideProcessingSplash();
+        //TODO: add an actual implemention here
+    }
+
+    function onSendProposalError(message) {
+        //debug my
+        console.error("failed to send proposal: " + message);
+        appWindow.hideProcessingSplash();
+        //TODO: add an actual implemention here
+    }
+
+    function onActiveProposal(prop) {
+        middlePanel.setActiveProposal(prop);
+    }
+
     function onTransactionCommitted(success, transaction, txid) {
         hideProcessingSplash();
         if (!success) {
@@ -1050,6 +1090,10 @@ ApplicationWindow {
             // Clear tx fields
             middlePanel.transferView.clearFields()
 
+            if (currentWallet.multisigState.multisig) {
+                console.log("transaction successfully sent, tx id: " + txid);
+                MoneroComponents.MsProto.sendTransactionResult();
+            }
         }
         informationPopup.onCloseCallback = null
         informationPopup.open()
@@ -1357,6 +1401,10 @@ ApplicationWindow {
         IPC.uriHandler.connect(onUriHandler);
         Prices.priceJsonReceived.connect(appWindow.fiatApiJsonReceived);
 
+        MoneroComponents.MsProto.proposalSent.connect(onProposalSent);
+        MoneroComponents.MsProto.sendProposalError.connect(onSendProposalError);
+        MoneroComponents.MsProto.activeProposal.connect(onActiveProposal);
+
         if(typeof daemonManager != "undefined") {
             daemonManager.daemonStarted.connect(onDaemonStarted);
             daemonManager.daemonStartFailure.connect(onDaemonStartFailure);
@@ -1481,7 +1529,11 @@ ApplicationWindow {
                     if(viewOnly) {
                         saveTxDialog.open();
                     } else {
-                        handleTransactionConfirmed()
+                        if (!currentWallet.multisigState.multisig) {
+                            handleTransactionConfirmed()
+                        } else {
+                            handleMultisigTransactionConfirmed()
+                        }
                     }
                 } else {
                     passwordDialog.showError(qsTr("Wrong password") + translationManager.emptyString);
@@ -1798,7 +1850,7 @@ ApplicationWindow {
             }
 
             onProposalsClicked: {
-                middlePanel.state = "Proposals";
+                middlePanel.state = "Proposal";
                 middlePanel.flickable.contentY = 0;
                 if(isMobile) {
                     hideMenu();

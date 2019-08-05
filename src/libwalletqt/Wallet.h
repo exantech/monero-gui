@@ -341,6 +341,8 @@ public:
     Q_INVOKABLE QString exportMultisigImages();
     Q_INVOKABLE quint32 importMultisigImages(const QVector<QString>& images);
     Q_INVOKABLE bool hasMultisigPartialKeyImages();
+    Q_INVOKABLE PendingTransaction * restoreMultisigTx(const QString &signData);
+    Q_INVOKABLE void restoreMultisigTxAsync(const QString &signData);
 
     // TODO: setListenter() when it implemented in API
 signals:
@@ -367,6 +369,8 @@ signals:
     void transactionCreated(PendingTransaction * transaction, QString address, QString paymentId, quint32 mixinCount);
 
     void connectionStatusChanged(ConnectionStatus status) const;
+
+    void multisigTxRestored(PendingTransaction * transaction);
 
 private:
     Wallet(QObject * parent = nullptr);

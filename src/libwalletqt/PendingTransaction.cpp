@@ -98,3 +98,11 @@ PendingTransaction::PendingTransaction(Monero::PendingTransaction *pt, QObject *
 {
 
 }
+
+QString PendingTransaction::multisigSignData() {
+    return QString::fromStdString(m_pimpl->multisigSignData());
+}
+
+void PendingTransaction::signMultisigTx() {
+    m_pimpl->signMultisigTx();
+}

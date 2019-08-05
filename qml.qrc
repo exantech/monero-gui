@@ -266,5 +266,6 @@
         <file>wizard/WizardJoinMultisigWallet2.qml</file>
         <file>wizard/WizardJoinMultisigWallet3.qml</file>
         <file>wizard/WizardJoinMultisigWallet4.qml</file>
+        <file>pages/Proposal.qml</file>
     </qresource>
 </RCC>

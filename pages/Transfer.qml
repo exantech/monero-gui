@@ -398,10 +398,32 @@ Rectangle {
       RowLayout {
           StandardButton {
               id: sendButton
+              visible: !currentWallet.multisigState.multisig
               rightIcon: "qrc:///images/rightArrow.png"
               rightIconInactive: "qrc:///images/rightArrowInactive.png"
               Layout.topMargin: 4
               text: qsTr("Send") + translationManager.emptyString
+              enabled: {
+                updateSendButton()
+              }
+              onClicked: {
+                  console.log("Transfer: paymentClicked")
+                  var priority = priorityModelV5.get(priorityDropdown.currentIndex).priority
+                  console.log("priority: " + priority)
+                  console.log("amount: " + amountLine.text)
+                  addressLine.text = addressLine.text.trim()
+                  setPaymentId(paymentIdLine.text.trim());
+                  root.paymentClicked(addressLine.text, paymentIdLine.text, amountLine.text, root.mixin, priority, descriptionLine.text)
+              }
+          }
+
+          StandardButton {
+              id: makeProposalButton
+              visible: currentWallet.multisigState.multisig
+              rightIcon: "qrc:///images/rightArrow.png"
+              rightIconInactive: "qrc:///images/rightArrowInactive.png"
+              Layout.topMargin: 4
+              text: qsTr("Make proposal") + translationManager.emptyString
               enabled: {
                 updateSendButton()
               }

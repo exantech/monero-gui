@@ -531,7 +531,7 @@ Rectangle {
                 onClicked: {
                     parent.previousButton.checked = false
                     parent.previousButton = proposalsButton
-                    panel.addressBookClicked()
+                    panel.proposalsClicked()
                 }
             }
 

@@ -67,6 +67,7 @@ Rectangle {
     property AddressBook addressBookView: AddressBook { }
     property Keys keysView: Keys { }
     property Account accountView: Account { }
+    property Proposal proposalView: Proposal { }
 
     signal paymentClicked(string address, string paymentId, string amount, int mixinCount, int priority, string description)
     signal sweepUnmixableClicked()
@@ -121,6 +122,10 @@ Rectangle {
         transferView.sendTo(address, paymentId, description);
     }
 
+    function setActiveProposal(prop) {
+        proposalView.setActiveProposal(prop);
+    }
+
         states: [
             State {
                 name: "History"
@@ -170,7 +175,11 @@ Rectangle {
                 name: "Account"
                 PropertyChanges { target: root; currentView: accountView }
                 PropertyChanges { target: mainFlickable; contentHeight: accountView.accountHeight + 80 }
-            }	
+            }, State {
+                name: "Proposal"
+                PropertyChanges { target: root; currentView: proposalView }
+                PropertyChanges { target: mainFlickable; contentHeight: accountView.accountHeight + 80 }
+            }
         ]
 
     // color stripe at the top

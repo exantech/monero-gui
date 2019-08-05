@@ -25,7 +25,19 @@ QtObject {
     signal walletCreated
     signal error(string msg)
 
+    signal proposalSent(int id)
+    signal sendProposalError(string message);
+
+    signal activeProposal(var prop)
+
     property Timer timer: Timer{
+        interval: 2000
+        running: false
+        repeat: true
+        triggeredOnStart: false
+    }
+
+    property Timer repeatTimer: Timer {
         interval: 2000
         running: false
         repeat: true
@@ -43,6 +55,7 @@ QtObject {
         timer.onTriggered.disconnect(exchangeKeys);
         if (mWallet) {
             mWallet.refreshed.disconnect(onWalletRefreshed);
+            mWallet.multisigTxRestored.disconnect(onMultisigTxRestored);
         }
 
         mWallet = null;
@@ -72,6 +85,7 @@ QtObject {
         }
 
         mWallet.refreshed.connect(onWalletRefreshed)
+        mWallet.multisigTxRestored.connect(onMultisigTxRestored)
 
         stopped = false;
         openSession();
@@ -427,7 +441,6 @@ QtObject {
     }
 
     function getProposals(staticRevision) {
-
         //debug my
         console.error("Getting proposals");
 
@@ -440,13 +453,16 @@ QtObject {
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .onSuccess(getHandler("transaction proposals", function (props) {
                 //debug my
-                console.error("props: " + JSON.stringify(props));
+                console.error("props count: " + props.length);
 
                 var hasActive = false;
                 for (var i = 0; i < props.length; i++) {
                     var prop = props[i];
                     if (prop.status === "signing") {
                         hasActive = true;
+                        activeProposal(prop);
+                        //debug my
+                        console.error("my key: " + mWallet.publicMultisigSignerKey)
                         break;
                     }
                 }
@@ -456,6 +472,8 @@ QtObject {
                     console.error("has active proposals");
                     exchangingOutputs = false;
                     return;
+                } else {
+                    activeProposal(null);
                 }
 
                 var txCount = 0;
@@ -625,6 +643,187 @@ QtObject {
                 getStdError("import outputs")(status, text);
                 exchangingOutputs = false;
             });
+
+        req.send();
+    }
+
+    function sendProposalAsync(proposal) {
+//        meta.unsentProposal = proposal;
+
+        var data = JSON.stringify({
+            "destination_address": proposal.destination_address,
+            "description": proposal.description,
+            "signed_transaction": proposal.signed_transaction,
+            "amount": proposal.amount,
+            "fee": proposal.fee
+        });
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("tx_proposals"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(function (obj) {
+                var id = obj.proposal_id || -1;
+                proposalSent(id);
+                meta.unsentProposal = "";
+            })
+            .onError(function (status, text) {
+                console.error("failed to send proposal (http status " + status + "): " + text);
+
+                switch (status) {
+                case 409:
+                    sendProposalError(text);
+                    meta.unsentProposal = "";
+                    break;
+                default:
+                    //TODO: retry send on timer
+                    sendProposalError(text);
+                    meta.unsentProposal = "";
+                    break;
+                }
+            });
+
+        req.send();
+    }
+
+    property var pendingDecision
+    function sendProposalDecisionAsync(approve, proposal) {
+        //TODO: stop trying to send decision on already finished proposal
+        pendingDecision = {
+            "decision": approve,
+            "proposal_id": proposal.proposal_id,
+            "signing_data": proposal.last_signed_transaction,
+            "approved": proposal.approvals.length,
+            "state": "pending",
+        }
+
+        if (!approve) {
+            pendingDecision.state = "locking";
+            sendProposalDecision();
+            return;
+        }
+
+        pendingDecision.state = "restoring";
+        mWallet.restoreMultisigTxAsync(pendingDecision.signing_data);
+    }
+
+    function sendProposalDecision() {
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("HEAD")
+            .setUrl(getUrl("tx_proposals/" + pendingDecision.proposal_id + "/decision"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("proposal decision lock", function (obj) {
+                var decision = {
+                    "approved": pendingDecision.decision,
+                    "approval_nonce": pendingDecision.approved,
+                    "signed_transaction": "",
+                }
+
+                if (pendingDecision.decision) {
+                    decision.signed_transaction = pendingDecision.signing_data;
+                }
+
+                doSendDecision(decision);
+            }))
+            .onError(function (status, text) {
+                pendingDecision.state = "pending";
+                //TODO: run timer to check periodically
+            });
+
+        req.send();
+    }
+
+    function doSendDecision(decision) {
+        var data = JSON.stringify(decision);
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("PUT")
+            .setUrl(getUrl("tx_proposals/" + pendingDecision.proposal_id + "/decision"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("proposal decision", function (obj) {
+                //debug my
+                console.error("proposal successfully sent");
+                pendingDecision.state = "sent";
+
+                //TODO: emit signal
+                //TODO: increment revision's static counter
+            }))
+            .onError(function (status, text) {
+                //debug my
+                console.warn("failed to send proposal decision (" + status + "): " + text)
+                if (status === 409) {
+                    pendingDecision.state = "pending";
+                    return;
+                }
+
+                //TODO: emit signal
+                //TODO: increment revision's static counter
+                pendingDecision = null;
+            });
+
+        req.send();
+    }
+
+    function onMultisigTxRestored(pendingTransaction) {
+        if (!pendingTransaction) {
+            console.error("wallet couldn't restore multisig transaction");
+        }
+
+        //debug my
+        console.error("multisig transaction successfully restored");
+
+        pendingTransaction.signMultisigTx();
+        if (pendingTransaction.status != 0) {
+            console.error("failed to sign multisig transaction: " + pendingTransaction.errorString);
+            pendingDecision = null;
+            //TODO: notify callback
+            return;
+        }
+
+        pendingDecision.signing_data = pendingTransaction.multisigSignData();
+        sendProposalDecision();
+
+        //debug my
+        console.error("committing transaction " + pendingTransaction.txid[0]);
+        mWallet.commitTransactionAsync(pendingTransaction);
+    }
+
+    function sendTransactionResult(success, txid) {
+        if (!success) {
+            pendingDecision = null;
+            return;
+        }
+
+        var data = JSON.stringify({
+            "tx_id": txid,
+        });
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
+
+        //debug my
+        console.error("transaction committed, tx hash: " + txid + ", sending relay status");
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("tx_relay_status/" + pendingDecision.proposal_id))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .setData(data)
+            .onSuccess(getHandler("tx relay status", function (obj) {
+                //debug my
+                console.error("proposal successfully sent");
+                pendingDecision = null;
+            }))
+            .onError(getStdError("tx relay status"));
 
         req.send();
     }
