@@ -25,10 +25,15 @@ QtObject {
     signal walletCreated
     signal error(string msg)
 
+    signal proposalChanged(var prop)
+
     signal proposalSent(int id)
     signal sendProposalError(string message);
 
-    signal activeProposal(var prop)
+    property var activeProposal: null;
+    property int staticRevision: 0;
+    //debug my. to be deleted
+    property int proposalsCount: 0;
 
     property Timer timer: Timer{
         interval: 2000
@@ -42,6 +47,10 @@ QtObject {
         running: false
         repeat: true
         triggeredOnStart: false
+    }
+
+    onActiveProposalChanged: {
+        proposalChanged(activeProposal);
     }
 
     function stop() {
@@ -430,7 +439,8 @@ QtObject {
             .onSuccess(getHandler("static revision number", function (obj) {
                 //debug my
                 console.error("static revision number: " + obj.revision);
-                getProposals(obj.revision);
+                staticRevision = obj.revision;
+                getProposals();
             }))
             .onError(function (status, text) {
                 getStdError("revision")(status, text);
@@ -440,7 +450,7 @@ QtObject {
         req.send();
     }
 
-    function getProposals(staticRevision) {
+    function getProposals() {
         //debug my
         console.error("Getting proposals");
 
@@ -460,53 +470,17 @@ QtObject {
                     var prop = props[i];
                     if (prop.status === "signing") {
                         hasActive = true;
-                        activeProposal(prop);
-                        //debug my
-                        console.error("my key: " + mWallet.publicMultisigSignerKey)
+                        activeProposal = prop;
                         break;
                     }
                 }
 
-                if (hasActive) {
-                    //debug my
-                    console.error("has active proposals");
-                    exchangingOutputs = false;
-                    return;
-                } else {
-                    activeProposal(null);
+                if (!hasActive) {
+                    activeProposal = null;
                 }
 
-                var txCount = 0;
-                for (i = 0; i < mWallet.history.count; i++) {
-                    var tx = mWallet.history.transaction(i)
-                    if (tx.confirmations === 0) {
-                        //debug my
-                        console.error("have at least one unconfimed transaction");
-                        exchangingOutputs = false;
-                        return;
-                    }
-
-                    if (tx.direction === 0) {
-                        txCount += 1;
-                    }
-                }
-
-                var n = staticRevision + txCount;
-                if (props.length) {
-                    n += props.length;
-                }
-
-                //debug my
-                console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
-                if (n > meta.lastOutputsRevision) {
-                    exchangeOutputs(n);
-                } else if (meta.lastOutputsImported === 0) {
-                    importOutputs(meta.lastOutputsRevision);
-                } else {
-                    exchangingOutputs = false;
-                    //debug my
-                    console.error("nothing is changed, no need to export. has partial key images: " + mWallet.hasMultisigPartialKeyImages());
-                }
+                proposalsCount = props.length;
+                processOutputsExchangeState();
             }))
             .onError(function (status, text) {
                 getStdError("tx_proposals")(status, text);
@@ -514,6 +488,47 @@ QtObject {
             });
 
         req.send();
+    }
+
+    function processOutputsExchangeState() {
+        //debug my
+        console.error("processing outputs state");
+
+        if (activeProposal != null) {
+            //debug my
+            console.error("has active proposal, postponing outputs exchange");
+            exchangingOutputs = false;
+            return;
+        }
+
+        var txCount = 0;
+        for (var i = 0; i < mWallet.history.count; i++) {
+            var tx = mWallet.history.transaction(i)
+            if (tx.confirmations === 0) {
+                //debug my
+                console.error("have at least one unconfimed transaction");
+                exchangingOutputs = false;
+                return;
+            }
+
+            if (tx.direction === 0) {
+                txCount += 1;
+            }
+        }
+
+        var n = staticRevision + txCount + proposalsCount;
+
+        //debug my
+        console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
+        if (n > meta.lastOutputsRevision) {
+            exchangeOutputs(n);
+        } else if (meta.lastOutputsImported === 0) {
+            importOutputs(meta.lastOutputsRevision);
+        } else {
+            exchangingOutputs = false;
+            //debug my
+            console.error("nothing is changed, no need to export. has partial key images: " + mWallet.hasMultisigPartialKeyImages());
+        }
     }
 
     function exchangeOutputs(n) {
@@ -598,12 +613,10 @@ QtObject {
         var handler = getHandler("import outputs", function (obj) {
             var outputs = obj.outputs;
 
-            var hasHigherRevision = false;
             var toImport = [];
             for (var i = 0; i < outputs.length; i++) {
                 var out = outputs[i];
                 if (out[1] > n) {
-                    hasHigherRevision = true;
                     console.warn("Higher outputs revision found. Max: " + out[1] + ", we have: " + n);
                     return;
                 }
@@ -620,7 +633,7 @@ QtObject {
                 return;
             }
 
-            var imported = mWallet.importMultisigImages(toImport); //TODO: exception???
+            var imported = mWallet.importMultisigImages(toImport); //TODO: check status
             meta.lastOutputsImported = toImport.length;
             meta.save();
             console.log("imported " + imported + " outputs of " + meta.participantsCount + " participants");
@@ -727,7 +740,7 @@ QtObject {
                 }
 
                 if (pendingDecision.decision) {
-                    decision.signed_transaction = pendingDecision.signing_data;
+                    decision.signed_transaction = pendingDecision.pending_transaction.multisigSignData();
                 }
 
                 doSendDecision(decision);
@@ -755,6 +768,11 @@ QtObject {
                 console.error("proposal successfully sent");
                 pendingDecision.state = "sent";
 
+                //debug my
+                console.error("committing transaction " + pendingDecision.pending_transaction.txid[0]);
+                //TODO: make the call after sending proposal decision?
+                mWallet.commitTransactionAsync(pendingDecision.pending_transaction);
+
                 //TODO: emit signal
                 //TODO: increment revision's static counter
             }))
@@ -777,6 +795,7 @@ QtObject {
     function onMultisigTxRestored(pendingTransaction) {
         if (!pendingTransaction) {
             console.error("wallet couldn't restore multisig transaction");
+            return;
         }
 
         //debug my
@@ -786,16 +805,13 @@ QtObject {
         if (pendingTransaction.status != 0) {
             console.error("failed to sign multisig transaction: " + pendingTransaction.errorString);
             pendingDecision = null;
+            error("failed to sign multisig transaction: " + pendingTransaction.errorString);
             //TODO: notify callback
             return;
         }
 
-        pendingDecision.signing_data = pendingTransaction.multisigSignData();
+        pendingDecision["pending_transaction"] = pendingTransaction;
         sendProposalDecision();
-
-        //debug my
-        console.error("committing transaction " + pendingTransaction.txid[0]);
-        mWallet.commitTransactionAsync(pendingTransaction);
     }
 
     function sendTransactionResult(success, txid) {

@@ -1403,7 +1403,7 @@ ApplicationWindow {
 
         MoneroComponents.MsProto.proposalSent.connect(onProposalSent);
         MoneroComponents.MsProto.sendProposalError.connect(onSendProposalError);
-        MoneroComponents.MsProto.activeProposal.connect(onActiveProposal);
+        MoneroComponents.MsProto.proposalChanged.connect(onActiveProposal);
 
         if(typeof daemonManager != "undefined") {
             daemonManager.daemonStarted.connect(onDaemonStarted);
