@@ -326,6 +326,7 @@ Rectangle {
           spacing: 15
 
           ColumnLayout {
+              visible: !currentWallet.multisigState.multisig
               CheckBox {
                   id: descriptionCheckbox
                   border: false
@@ -348,6 +349,13 @@ Rectangle {
                   Layout.fillWidth: true
                   visible: descriptionCheckbox.checked
               }
+          }
+
+          LineEditMulti {
+              visible: currentWallet.multisigState.multisig
+              id: proposalDescriptionLine
+              placeholderText: qsTr("This note is visible to your co-payers") + translationManager.emptyString
+              Layout.fillWidth: true
           }
 
           ColumnLayout {
@@ -425,7 +433,7 @@ Rectangle {
               Layout.topMargin: 4
               text: qsTr("Make proposal") + translationManager.emptyString
               enabled: {
-                updateSendButton() && MoneroComponents.MsProto.isUpdated()
+                updateSendButton() && MoneroComponents.MsProto.isUpdated() && proposalDescriptionLine.text
               }
               onClicked: {
                   console.log("Transfer: paymentClicked")
@@ -434,7 +442,7 @@ Rectangle {
                   console.log("amount: " + amountLine.text)
                   addressLine.text = addressLine.text.trim()
                   setPaymentId(paymentIdLine.text.trim());
-                  root.paymentClicked(addressLine.text, paymentIdLine.text, amountLine.text, root.mixin, priority, descriptionLine.text)
+                  root.paymentClicked(addressLine.text, paymentIdLine.text, amountLine.text, root.mixin, priority, proposalDescriptionLine.text)
               }
           }
       }

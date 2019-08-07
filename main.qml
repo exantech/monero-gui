@@ -58,6 +58,7 @@ ApplicationWindow {
     property var currentWallet;
     property var transaction;
     property var transactionDescription;
+    property var transactionDestination;
     property var walletPassword
     property bool isNewWallet: false
     property int restoreHeight:0
@@ -910,6 +911,7 @@ ApplicationWindow {
         showProcessingSplash("Creating transaction");
 
         transactionDescription = description;
+        transactionDestination = address;
 
         // validate amount;
         if (amount !== "(all)") {
@@ -1039,9 +1041,9 @@ ApplicationWindow {
         var proposal = {
             "amount": transaction.amount,
             "fee": transaction.fee,
-            "description": "test proposal", //TODO: make proposal description
+            "description": transactionDescription,
             "signed_transaction": signData,
-            "destination_address": "57Fa4LX3xZF2M6iZAcaHPneqEJLyG5xx83CYvoiwuJ6HePhz2xwo4HBKLTNEDTRWDchMCj23b4ELDQaRtuRWCC161SzhEnA", //TODO: save destination address
+            "destination_address": transactionDestination,
         };
 
         MoneroComponents.MsProto.sendProposalAsync(proposal);
