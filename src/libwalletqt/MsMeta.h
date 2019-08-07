@@ -22,7 +22,7 @@ class MsMeta: public QObject {
     Q_PROPERTY(quint32 participantsCount READ getParticipantsCount WRITE setParticipantsCount)
     Q_PROPERTY(quint32 keysRounds READ getKeysRounds WRITE setKeysRounds)
     Q_PROPERTY(quint32 lastOutputsRevision READ getLastOutputsRevision WRITE setLastOutputsRevision)
-    Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported)
+    Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported NOTIFY lastOuputsImportedChanged)
     Q_PROPERTY(QString path READ getPath WRITE setPath)
     Q_PROPERTY(QString unsentProposal READ getUnsentProposal WRITE setUnsentProposal)
 
@@ -57,6 +57,9 @@ public:
 
     Q_INVOKABLE QString getUnsentProposal() const;
     Q_INVOKABLE void setUnsentProposal(const QString& proposal);
+
+signals:
+    void lastOuputsImportedChanged() const;
 
 private:
     bool loaded;

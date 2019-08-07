@@ -768,13 +768,15 @@ QtObject {
                 console.error("proposal successfully sent");
                 pendingDecision.state = "sent";
 
-                //debug my
-                console.error("committing transaction " + pendingDecision.pending_transaction.txid[0]);
-                //TODO: make the call after sending proposal decision?
-                mWallet.commitTransactionAsync(pendingDecision.pending_transaction);
+                if (decision.approved) {
+                    //debug my
+                    console.error("committing transaction " + pendingDecision.pending_transaction.txid[0]);
+                    //TODO: make the call after sending proposal decision?
+                    mWallet.commitTransactionAsync(pendingDecision.pending_transaction);
+                }
 
                 //TODO: emit signal
-                //TODO: increment revision's static counter
+                incStaticRevision();
             }))
             .onError(function (status, text) {
                 //debug my
@@ -785,8 +787,8 @@ QtObject {
                 }
 
                 //TODO: emit signal
-                //TODO: increment revision's static counter
                 pendingDecision = null;
+                incStaticRevision();
             });
 
         req.send();
@@ -840,6 +842,31 @@ QtObject {
                 pendingDecision = null;
             }))
             .onError(getStdError("tx relay status"));
+
+        req.send();
+    }
+
+    function isUpdated() {
+        return meta.lastOutputsImported !== 0 && activeProposal == null;
+    }
+
+    function incStaticRevision() {
+        //debug my
+        console.error("incrementing revision static counter");
+
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request()
+            .setMethod("POST")
+            .setUrl(getUrl("revision"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("increment revision", function (obj) {
+                //debug my
+                console.error("revision incremented: " + JSON.stringify(obj));
+                staticRevision = obj.revision;
+            }))
+            .onError(getStdError("increment revision"));
 
         req.send();
     }

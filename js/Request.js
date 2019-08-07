@@ -37,6 +37,11 @@ function Request() {
             this.req.setRequestHeader(k, this.headers[k])
         }
 
-        this.req.send(this.data);
+        if (this.data) {
+            this.req.send(this.data);
+        } else {
+            this.req.send();
+        }
+
     }
 }

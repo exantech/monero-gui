@@ -425,7 +425,7 @@ Rectangle {
               Layout.topMargin: 4
               text: qsTr("Make proposal") + translationManager.emptyString
               enabled: {
-                updateSendButton()
+                updateSendButton() && MoneroComponents.MsProto.isUpdated()
               }
               onClicked: {
                   console.log("Transfer: paymentClicked")
