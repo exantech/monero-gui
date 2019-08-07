@@ -9,7 +9,7 @@ namespace Monero {
 
 class MultisigState: public QObject {
     Q_OBJECT
-    Q_PROPERTY(bool multisig READ multisig)
+    Q_PROPERTY(bool multisig READ multisig NOTIFY multisigChanged)
     Q_PROPERTY(bool ready READ ready)
     Q_PROPERTY(quint32 signaturesRequired READ signaturesRequired)
     Q_PROPERTY(quint32 participantsCount READ participantsCount)
@@ -21,6 +21,9 @@ public:
     bool ready() const;
     quint32 signaturesRequired() const;
     quint32 participantsCount() const;
+
+signals:
+    void multisigChanged() const;
 
 private:
     bool isMultisig;

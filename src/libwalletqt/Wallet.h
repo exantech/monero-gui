@@ -86,7 +86,7 @@ class Wallet : public QObject
     Q_PROPERTY(quint64 walletCreationHeight READ getWalletCreationHeight WRITE setWalletCreationHeight NOTIFY walletCreationHeightChanged)
     Q_PROPERTY(QString multisigInfo READ getMultisigInfo)
     Q_PROPERTY(QString publicMultisigSignerKey READ getPublicMultisigSignerKey)
-    Q_PROPERTY(MultisigState * multisigState READ multisigState)
+    Q_PROPERTY(MultisigState * multisigState READ multisigState NOTIFY multisigStateChanged)
 
 public:
 
@@ -371,6 +371,7 @@ signals:
     void connectionStatusChanged(ConnectionStatus status) const;
 
     void multisigTxRestored(PendingTransaction * transaction);
+    void multisigStateChanged() const;
 
 private:
     Wallet(QObject * parent = nullptr);
