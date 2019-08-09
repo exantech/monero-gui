@@ -1051,7 +1051,7 @@ ApplicationWindow {
 
     function onProposalSent(id) {
         //debug my
-        console.error("Proposal " + id + " successfully sent");
+        console.error("Proposal successfully sent");
         appWindow.hideProcessingSplash();
         //TODO: add an actual implemention here
     }
@@ -1093,7 +1093,7 @@ ApplicationWindow {
             middlePanel.transferView.clearFields()
 
             if (currentWallet.multisigState.multisig) {
-                console.log("transaction successfully sent, tx id: " + txid);
+                console.log("multisig transaction successfully sent, tx id: " + txid);
                 MoneroComponents.MsProto.sendTransactionResult();
             }
         }

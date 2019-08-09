@@ -122,6 +122,8 @@ Rectangle {
                         id: approveButton
                         text: "approve"
 
+                        enabled: !root.proposal.answered
+
                         onClicked: {
                             MoneroComponents.MsProto.sendProposalDecisionAsync(true, root.proposal);
                         }
@@ -130,6 +132,8 @@ Rectangle {
                     MoneroComponents.StandardButton {
                         id: rejectButton
                         text: "reject"
+
+                        enabled: !root.proposal.answered
 
                         onClicked: {
                             MoneroComponents.MsProto.sendProposalDecisionAsync(false, root.proposal);

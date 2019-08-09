@@ -101,7 +101,7 @@ QtObject {
     }
 
     function onOpenSessionResponse() {
-        sessionOpened(); // emit signal
+        sessionOpened();
         //debug my
         console.error("session opened.")
 
@@ -470,6 +470,7 @@ QtObject {
                     var prop = props[i];
                     if (prop.status === "signing") {
                         hasActive = true;
+                        prop["answered"] = alredyAnswered(prop);
                         activeProposal = prop;
                         break;
                     }
@@ -488,6 +489,15 @@ QtObject {
             });
 
         req.send();
+    }
+
+    function alredyAnswered(prop) {
+        if (prop.approvals.find(function (e) { return e == mWallet.publicMultisigSignerKey; }) ||
+                prop.rejects.find(function (e) { return e == mWallet.publicMultisigSignerKey; })) {
+            return true;
+        }
+
+        return false;
     }
 
     function processOutputsExchangeState() {
