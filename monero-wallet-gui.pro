@@ -39,6 +39,7 @@ HEADERS += \
     clipboardAdapter.h \
     oscursor.h \
     readresult.h \
+    src/HttpClient.h \
     src/libwalletqt/MsMeta.h \
     src/libwalletqt/MultisigState.h \
     src/libwalletqt/WalletManager.h \
@@ -77,6 +78,7 @@ SOURCES += main.cpp \
     clipboardAdapter.cpp \
     oscursor.cpp \
     readresult.cpp \
+    src/HttpClient.cpp \
     src/libwalletqt/MsMeta.cpp \
     src/libwalletqt/MultisigState.cpp \
     src/libwalletqt/WalletManager.cpp \

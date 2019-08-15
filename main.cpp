@@ -69,6 +69,7 @@
 #include "qt/prices.h"
 #include "readresult.h"
 #include "MsMeta.h"
+#include "HttpClient.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -279,6 +280,7 @@ int main(int argc, char *argv[])
                                                         "SubaddressAccount can't be instantiated directly");
 
     qmlRegisterUncreatableType<MsMeta>("moneroComponents.MsMeta", 1, 0, "MsMeta", "MsMeta can't be instantiated directly");
+    qmlRegisterUncreatableType<HttpClient>("moneroComponents.HttpClient", 1, 0, "HttpClient", "HttpClient can't be instantiated directly");
 
     qRegisterMetaType<PendingTransaction::Priority>();
     qRegisterMetaType<TransactionInfo::Direction>();
@@ -300,6 +302,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("oshelper", &osHelper);
     MsMetaFactory metaFactory;
     engine.rootContext()->setContextProperty("metaFactory", &metaFactory);
+    HttpClientFactory httpFactory;
+    engine.rootContext()->setContextProperty("httpFactory", &httpFactory);
 
     engine.addImportPath(":/fonts");
 

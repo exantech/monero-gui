@@ -1,13 +1,13 @@
 .pragma library
 
-function Request() {
+function Request(httpClient) {
     this.method = "GET";
     this.url = "";
     this.headers = null;
     this.data = null;
     this.succesCb = null;
     this.errorCb = null;
-    this.req = new XMLHttpRequest();
+    this.req = httpClient;
 
     this.setMethod = function (method) { this.method = method; return this; }
     this.setUrl = function (url) { this.url = url; return this; }
@@ -16,22 +16,25 @@ function Request() {
     this.onSuccess = function (successCb) { this.successCb = successCb; return this; }
     this.onError = function (errorCb) { this.errorCb = errorCb; return this; }
 
-    this.send = function () {
-        this.req.open(this.method, this.url);
+    this.requestSuccess = function(statusCode, message) {
+        if (this.successCb) {
+            this.successCb(message);
+        }
+    }.bind(this);
 
-        this.req.onreadystatechange = function () {
-            if (this.req.readyState === 4) { //request done
-                if (this.req.status >= 200 && this.req.status < 300) {
-                    if (this.successCb) {
-                        this.successCb(this.req.responseText);
-                    }
-                } else {
-                    if (this.errorCb) {
-                        this.errorCb(this.req.status, this.req.responseText);
-                    }
-                }
-            }
-        }.bind(this);
+    this.requestError = function(statusCode, errorString) {
+        if (this.errorCb) {
+            this.errorCb(statusCode, errorString);
+        }
+    }.bind(this);
+
+    this.req.onSuccess.connect(this.requestSuccess);
+    this.req.onError.connect(this.requestError);
+
+    this.send = function () {
+        this.req.setMethod(this.method);
+        this.req.setUrl(this.url);
+        this.req.setData(this.data);
 
         for (var k in this.headers) {
             this.req.setRequestHeader(k, this.headers[k])
@@ -42,6 +45,5 @@ function Request() {
         } else {
             this.req.send();
         }
-
     }
 }

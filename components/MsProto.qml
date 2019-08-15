@@ -5,7 +5,7 @@ import QtQuick 2.0
 import "../js/Request.js" as Request
 
 QtObject {
-    property string mwsUrl: "http://mws-stage.exan.tech/"
+    property string mwsUrl: "https://mws-stage.exan.tech/"
     property string apiVersion: "api/v1/"
 
     property var meta
@@ -32,8 +32,6 @@ QtObject {
 
     property var activeProposal: null;
     property int staticRevision: 0;
-    //debug my. to be deleted
-    property int proposalsCount: 0;
 
     property Timer timer: Timer{
         interval: 2000
@@ -43,7 +41,7 @@ QtObject {
     }
 
     property Timer repeatTimer: Timer {
-        interval: 2000
+        interval: 5000
         running: false
         repeat: true
         triggeredOnStart: false
@@ -134,7 +132,7 @@ QtObject {
             'public_key': signerKey
         });
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("open_session"))
             .setData(data)
@@ -163,7 +161,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("create_wallet"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -198,7 +196,7 @@ QtObject {
             callback = processExtraMultisigInfo;
         }
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("GET")
             .setUrl(url)
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -218,7 +216,7 @@ QtObject {
         //debug my
         console.error("push extra multisig info data: " + data);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("extra_multisig_info"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -239,7 +237,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, oldSecretKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("change_public_key"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -353,7 +351,7 @@ QtObject {
         //debug my
         console.error("join wallet. secret key: " + mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("join_wallet"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -374,7 +372,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("GET")
             .setUrl(getUrl("info/wallet"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -432,7 +430,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("GET")
             .setUrl(getUrl("revision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -457,7 +455,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("GET")
             .setUrl(getUrl("tx_proposals"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -480,7 +478,6 @@ QtObject {
                     activeProposal = null;
                 }
 
-                proposalsCount = props.length;
                 processOutputsExchangeState();
             }))
             .onError(function (status, text) {
@@ -504,14 +501,7 @@ QtObject {
         //debug my
         console.error("processing outputs state");
 
-        if (activeProposal != null) {
-            //debug my
-            console.error("has active proposal, postponing outputs exchange");
-            exchangingOutputs = false;
-            return;
-        }
-
-        var txCount = 0;
+        var uniq = {};
         for (var i = 0; i < mWallet.history.count; i++) {
             var tx = mWallet.history.transaction(i)
             if (tx.confirmations === 0) {
@@ -521,17 +511,41 @@ QtObject {
                 return;
             }
 
-            if (tx.direction === 0) {
-                txCount += 1;
-            }
+            uniq[tx.hash] = 1;
         }
 
-        var n = staticRevision + txCount + proposalsCount;
+        var txCount = Object.keys(uniq).length;
+        var n = staticRevision + txCount;
+
+        if (activeProposal != null) {
+            if (meta.lastOutputsImported === 0) {
+                //debug my
+                console.error("has active proposal, but import operation isn't finished. trying to import outputs neverthless");
+
+                // let's consider the following case:
+                // we have 2/2 multisig wallet. all of participants synced their outputs. then:
+                // * tx came and triggered participant #1 to export his outputs
+                // * participant #2 exported his outputs and then imported outputs from #1
+                // * participant #2 creates transaction proposal and sends it
+                // * participant #1 receives it and cannot import outputs since there is active proposal at the moment;
+                // since proposal creator could have incremented static revision number already
+                // we shouldn't perform export outputs to not delete our current one-time keys
+                // which are already used in the transaction proposal.
+                importOutputs(meta.lastOutputsRevision);
+                return
+            }
+
+            //debug my
+            console.error("has active proposal, postponing outputs exchange");
+            exchangingOutputs = false;
+            return;
+        }
 
         //debug my
         console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
         if (n > meta.lastOutputsRevision) {
             exchangeOutputs(n);
+            importOutputs(meta.lastOutputsRevision);
         } else if (meta.lastOutputsImported === 0) {
             importOutputs(meta.lastOutputsRevision);
         } else {
@@ -547,7 +561,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("HEAD")
             .setUrl(getUrl("outputs_extended/" + n))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -557,7 +571,6 @@ QtObject {
             .onError(function (status, text) {
                 switch (status) {
                 case 0:
-                    //stupid JS returns 0 status code if this request fails with 4xx code
                     console.warn("can't exchange outputs");
                     break;
                 case 400:
@@ -597,7 +610,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("outputs_extended/" + n))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -654,7 +667,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("GET")
             .setUrl(getUrl("outputs_extended"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -671,8 +684,6 @@ QtObject {
     }
 
     function sendProposalAsync(proposal) {
-//        meta.unsentProposal = proposal;
-
         var data = JSON.stringify({
             "destination_address": proposal.destination_address,
             "description": proposal.description,
@@ -684,7 +695,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("tx_proposals"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -692,7 +703,7 @@ QtObject {
             .onSuccess(function (obj) {
                 var id = obj.proposal_id || -1;
                 proposalSent(id);
-                meta.unsentProposal = "";
+                incStaticRevision();
             })
             .onError(function (status, text) {
                 console.error("failed to send proposal (http status " + status + "): " + text);
@@ -700,12 +711,11 @@ QtObject {
                 switch (status) {
                 case 409:
                     sendProposalError(text);
-                    meta.unsentProposal = "";
+                    //TODO: show error message
                     break;
                 default:
                     //TODO: retry send on timer
                     sendProposalError(text);
-                    meta.unsentProposal = "";
                     break;
                 }
             });
@@ -738,7 +748,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("HEAD")
             .setUrl(getUrl("tx_proposals/" + pendingDecision.proposal_id + "/decision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -756,8 +766,13 @@ QtObject {
                 doSendDecision(decision);
             }))
             .onError(function (status, text) {
+                if (status == 409) {
+                    pendingDecision = null;
+                    error("Sending proposal decision is temporarily unavailable. Please try in a minute");
+                    return;
+                }
+
                 pendingDecision.state = "pending";
-                //TODO: run timer to check periodically
             });
 
         req.send();
@@ -768,7 +783,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("PUT")
             .setUrl(getUrl("tx_proposals/" + pendingDecision.proposal_id + "/decision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -786,19 +801,18 @@ QtObject {
                 }
 
                 //TODO: emit signal
-                incStaticRevision();
             }))
             .onError(function (status, text) {
                 //debug my
                 console.warn("failed to send proposal decision (" + status + "): " + text)
+                pendingDecision = null;
                 if (status === 409) {
                     pendingDecision.state = "pending";
+                    error("Sending proposal is temporarily unavailable. Please, try again in a minute");
                     return;
                 }
 
                 //TODO: emit signal
-                pendingDecision = null;
-                incStaticRevision();
             });
 
         req.send();
@@ -807,6 +821,12 @@ QtObject {
     function onMultisigTxRestored(pendingTransaction) {
         if (!pendingTransaction) {
             console.error("wallet couldn't restore multisig transaction");
+            return;
+        }
+
+        if (mWallet.status != 0) {
+            console.error("failed to restore multisig transaction: " + mWallet.errorString);
+            //TODO: notify callback
             return;
         }
 
@@ -828,6 +848,7 @@ QtObject {
 
     function sendTransactionResult(success, txid) {
         if (!success) {
+            // failed transaction send is handled in main.qml
             pendingDecision = null;
             return;
         }
@@ -841,7 +862,7 @@ QtObject {
         //debug my
         console.error("transaction committed, tx hash: " + txid + ", sending relay status");
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("tx_relay_status/" + pendingDecision.proposal_id))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -857,7 +878,8 @@ QtObject {
     }
 
     function isUpdated() {
-        return meta.lastOutputsImported !== 0 && activeProposal == null;
+        return meta.lastOutputsImported !== 0 &&
+               activeProposal == null;
     }
 
     function incStaticRevision() {
@@ -867,7 +889,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
-        var req = new Request.Request()
+        var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
             .setUrl(getUrl("revision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
@@ -878,7 +900,15 @@ QtObject {
             }))
             .onError(getStdError("increment revision"));
 
+        //debug my
+        console.error("sending post revision request");
         req.send();
+    }
+
+    function retrySend() {
+        if (!pendingDecision) {
+            return;
+        }
     }
 
     function getUrl(method) {

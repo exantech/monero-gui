@@ -169,11 +169,3 @@ quint32 MsMeta::getLastOutputsImported() const {
 void MsMeta::setLastOutputsImported(quint32 l) {
     lastOutputsImported = l;
 }
-
-QString MsMeta::getUnsentProposal() const {
-    return unsentProposal;
-}
-
-void MsMeta::setUnsentProposal(const QString& proposal) {
-    unsentProposal = proposal;
-}

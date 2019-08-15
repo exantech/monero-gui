@@ -11,9 +11,6 @@ public:
     Q_INVOKABLE MsMeta* createMeta();
 };
 
-//TODO: save unsent proposal
-//TODO: load unsent proposal
-//TODO: make unsent proposal a structure (save outputs revision, etc)
 class MsMeta: public QObject {
     Q_OBJECT
     Q_PROPERTY(bool loaded READ isLoaded)
@@ -24,7 +21,6 @@ class MsMeta: public QObject {
     Q_PROPERTY(quint32 lastOutputsRevision READ getLastOutputsRevision WRITE setLastOutputsRevision)
     Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported NOTIFY lastOuputsImportedChanged)
     Q_PROPERTY(QString path READ getPath WRITE setPath)
-    Q_PROPERTY(QString unsentProposal READ getUnsentProposal WRITE setUnsentProposal)
 
 public:
     explicit MsMeta(QObject* parent = nullptr);
@@ -55,9 +51,6 @@ public:
     Q_INVOKABLE quint32 getLastOutputsImported() const;
     Q_INVOKABLE void setLastOutputsImported(quint32 l);
 
-    Q_INVOKABLE QString getUnsentProposal() const;
-    Q_INVOKABLE void setUnsentProposal(const QString& proposal);
-
 signals:
     void lastOuputsImportedChanged() const;
 
@@ -70,5 +63,4 @@ private:
     quint32 keysRounds = 0;
     quint32 lastOutputsRevision = 0;
     quint32 lastOutputsImported = 0;
-    QString unsentProposal;
 };
