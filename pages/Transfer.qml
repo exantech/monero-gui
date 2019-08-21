@@ -105,6 +105,7 @@ Rectangle {
         root.sendButtonWarning = ""
         setDescription("");
         priorityDropdown.currentIndex = 0
+        proposalDescriptionLine.text = ""
         updatePriorityDropdown()
     }
 

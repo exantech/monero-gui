@@ -40,6 +40,7 @@ Rectangle {
     property alias symbol: symbolText.text
     property int numSelectedChildren: 0
     property var under: null
+    property bool notify: false
     signal clicked()
 
     function doClick() {
@@ -121,6 +122,19 @@ Rectangle {
             anchors.leftMargin: 8
             font.bold: true
             font.pixelSize: 14
+        }
+
+        // notification dot
+        Rectangle {
+            id: notificationDot
+            visible: button.notify
+            anchors.left: label.right
+            anchors.leftMargin: 10
+            width: 8
+            height: 8
+            radius: 4
+            color: "#FF4040"
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 

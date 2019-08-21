@@ -47,7 +47,7 @@ Rectangle {
 
     property var proposal
 
-    property alias addressbookHeight: mainLayout.height
+    property alias proposalHeight: mainLayout.height
     property bool selectAndSend: false
     property bool editEntry: false
 
@@ -67,7 +67,6 @@ Rectangle {
         ColumnLayout {
             id: proposalEmptyLayout
             visible: root.proposal == null
-            spacing: 0
             Layout.fillWidth: true
 
             TextArea {
@@ -91,7 +90,6 @@ Rectangle {
         ColumnLayout {
             id: proposalLayout
             visible: root.proposal != null
-            spacing: 0
 
             MoneroComponents.Label {
                 Layout.bottomMargin: 20
@@ -113,9 +111,186 @@ Rectangle {
             }
 
             ColumnLayout {
+                Layout.topMargin: 10
                 spacing: 10
 
+                // Destination line
                 RowLayout {
+                    MoneroComponents.TextPlain {
+                        text: qsTr("Destination: ") + translationManager.emptyString
+                        Layout.fillWidth: true
+                        color: MoneroComponents.Style.defaultFontColor
+                        font.pixelSize: 16
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                    }
+
+                    MoneroComponents.TextPlain {
+                        font.family: MoneroComponents.Style.fontMonoRegular.name;
+                        font.pixelSize: 16
+                        color: MoneroComponents.Style.defaultFontColor
+                        themeTransition: false
+                        text: TxUtils.addressTruncatePretty(proposal.destination_address, mainLayout.width < 740 ? 1 : (mainLayout.width < 900 ? 2 : 3))
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.color = MoneroComponents.Style.orange
+                            onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                            onClicked: {
+                                console.log("Copied to clipboard");
+                                clipboard.setText(proposal.destination_address);
+                                appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                            }
+                        }
+                    }
+                }
+
+                // Amount line
+                RowLayout {
+                    MoneroComponents.TextPlain {
+                        text: qsTr("Amount: ") + translationManager.emptyString
+                        Layout.fillWidth: true
+                        color: MoneroComponents.Style.defaultFontColor
+                        font.pixelSize: 16
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                    }
+
+                    MoneroComponents.TextPlain {
+                        font.family: MoneroComponents.Style.fontMonoRegular.name;
+                        font.pixelSize: 16
+                        color: MoneroComponents.Style.defaultFontColor
+                        themeTransition: false
+                        text: walletManager.displayAmount(proposal.amount)
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.color = MoneroComponents.Style.orange
+                            onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                            onClicked: {
+                                console.log("Copied to clipboard");
+                                clipboard.setText(parent.text);
+                                appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                            }
+                        }
+                    }
+                }
+
+                // Fee line
+                RowLayout {
+                    MoneroComponents.TextPlain {
+                        text: qsTr("Fee: ") + translationManager.emptyString
+                        Layout.fillWidth: true
+                        color: MoneroComponents.Style.defaultFontColor
+                        font.pixelSize: 16
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                    }
+
+                    MoneroComponents.TextPlain {
+                        font.family: MoneroComponents.Style.fontMonoRegular.name;
+                        font.pixelSize: 16
+                        color: MoneroComponents.Style.defaultFontColor
+                        themeTransition: false
+                        text: walletManager.displayAmount(proposal.fee)
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.color = MoneroComponents.Style.orange
+                            onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                            onClicked: {
+                                console.log("Copied to clipboard");
+                                clipboard.setText(parent.text);
+                                appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                            }
+                        }
+                    }
+                }
+
+                // Approvals line
+                RowLayout {
+                    MoneroComponents.TextPlain {
+                        text: qsTr("Approvals: ") + translationManager.emptyString
+                        Layout.fillWidth: true
+                        color: MoneroComponents.Style.defaultFontColor
+                        font.pixelSize: 16
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                    }
+
+                    MoneroComponents.TextPlain {
+                        font.family: MoneroComponents.Style.fontMonoRegular.name;
+                        font.pixelSize: 16
+                        color: MoneroComponents.Style.defaultFontColor
+                        themeTransition: false
+                        text: proposal.approvals.length + "/" + MoneroComponents.MsProto.meta.signaturesRequired
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.color = MoneroComponents.Style.orange
+                            onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                            onClicked: {
+                                console.log("Copied to clipboard");
+                                clipboard.setText(parent.text);
+                                appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                            }
+                        }
+                    }
+                }
+
+                // Rejects line
+                RowLayout {
+                    MoneroComponents.TextPlain {
+                        text: qsTr("Rejects: ") + translationManager.emptyString
+                        Layout.fillWidth: true
+                        color: MoneroComponents.Style.defaultFontColor
+                        font.pixelSize: 16
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                    }
+
+                    MoneroComponents.TextPlain {
+                        font.family: MoneroComponents.Style.fontMonoRegular.name;
+                        font.pixelSize: 16
+                        color: MoneroComponents.Style.defaultFontColor
+                        themeTransition: false
+                        text: proposal.rejects.length + "/" + MoneroComponents.MsProto.meta.participantsCount
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: parent.color = MoneroComponents.Style.orange
+                            onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                            onClicked: {
+                                console.log("Copied to clipboard");
+                                clipboard.setText(parent.text);
+                                appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                            }
+                        }
+                    }
+                }
+
+                // Proposal description
+                MoneroComponents.LineEdit {
+                    Layout.fillWidth: true
+                    readOnly: true
+                    labelText: qsTr("Transaction description") + translationManager.emptyString
+                    fontSize: 16
+                    text: proposal.description
+                }
+
+                // Decision buttons
+                RowLayout {
+                    Layout.topMargin: 15
                     spacing: 10
 
                     MoneroComponents.StandardButton {
@@ -132,6 +307,7 @@ Rectangle {
                     MoneroComponents.StandardButton {
                         id: rejectButton
                         text: "reject"
+                        width: approveButton.width
 
                         enabled: !root.proposal.answered
 
@@ -139,34 +315,6 @@ Rectangle {
                             MoneroComponents.MsProto.sendProposalDecisionAsync(false, root.proposal);
                         }
                     }
-                }
-
-                MoneroComponents.Label {
-                    text:  "description: " + proposal.description
-                }
-
-                MoneroComponents.Label {
-                    text:  "destination: " + proposal.destination_address
-                }
-
-                MoneroComponents.Label {
-                    text:  "amount: " + walletManager.displayAmount(proposal.amount)
-                }
-
-                MoneroComponents.Label {
-                    text:  "fee: " + walletManager.displayAmount(proposal.fee)
-                }
-
-                MoneroComponents.Label {
-                    text:  "status: " + proposal.status
-                }
-
-                MoneroComponents.Label {
-                    text:  "approved: " + proposal.approvals.length
-                }
-
-                MoneroComponents.Label {
-                    text:  "rejected: " + proposal.rejects.length
                 }
             }
         }

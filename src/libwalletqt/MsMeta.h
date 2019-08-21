@@ -15,8 +15,8 @@ class MsMeta: public QObject {
     Q_OBJECT
     Q_PROPERTY(bool loaded READ isLoaded)
     Q_PROPERTY(QString state READ getState WRITE setState)
-    Q_PROPERTY(quint32 signaturesRequired READ getSignaturesRequired WRITE setSignaturesRequired)
-    Q_PROPERTY(quint32 participantsCount READ getParticipantsCount WRITE setParticipantsCount)
+    Q_PROPERTY(quint32 signaturesRequired READ getSignaturesRequired WRITE setSignaturesRequired NOTIFY signaturesRequiredChanged)
+    Q_PROPERTY(quint32 participantsCount READ getParticipantsCount WRITE setParticipantsCount NOTIFY participantsCountChanged)
     Q_PROPERTY(quint32 keysRounds READ getKeysRounds WRITE setKeysRounds)
     Q_PROPERTY(quint32 lastOutputsRevision READ getLastOutputsRevision WRITE setLastOutputsRevision)
     Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported NOTIFY lastOuputsImportedChanged)
@@ -53,6 +53,8 @@ public:
 
 signals:
     void lastOuputsImportedChanged() const;
+    void signaturesRequiredChanged() const;
+    void participantsCountChanged() const;
 
 private:
     bool loaded;

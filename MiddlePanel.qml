@@ -178,7 +178,7 @@ Rectangle {
             }, State {
                 name: "Proposal"
                 PropertyChanges { target: root; currentView: proposalView }
-                PropertyChanges { target: mainFlickable; contentHeight: accountView.accountHeight + 80 }
+                PropertyChanges { target: mainFlickable; contentHeight: proposalView.proposalHeight + 80 }
             }
         ]
 

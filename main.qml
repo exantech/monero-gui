@@ -1053,6 +1053,7 @@ ApplicationWindow {
         //debug my
         console.error("Proposal successfully sent");
         appWindow.hideProcessingSplash();
+        middlePanel.transferView.clearFields();
         //TODO: add an actual implemention here
     }
 
@@ -1064,6 +1065,7 @@ ApplicationWindow {
     }
 
     function onActiveProposal(prop) {
+        leftPanel.notifyActiveProposal(prop != null);
         middlePanel.setActiveProposal(prop);
     }
 

@@ -514,7 +514,11 @@ QtObject {
             uniq[tx.hash] = 1;
         }
 
+        //debug my
+        console.error("static revision number: " + staticRevision);
         var txCount = Object.keys(uniq).length;
+        //debug my
+        console.error("tx count: " + txCount);
         var n = staticRevision + txCount;
 
         if (activeProposal != null) {
@@ -703,6 +707,12 @@ QtObject {
             .onSuccess(function (obj) {
                 var id = obj.proposal_id || -1;
                 proposalSent(id);
+
+                proposal.approvals = [mWallet.publicMultisigSignerKey];
+                proposal.rejects = [];
+                proposal.answered = true;
+                activeProposal = proposal;
+
                 incStaticRevision();
             })
             .onError(function (status, text) {

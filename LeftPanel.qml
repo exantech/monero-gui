@@ -88,6 +88,10 @@ Rectangle {
         menuColumn.previousButton.checked = true
     }
 
+    function notifyActiveProposal(notify) {
+        proposalsButton.notify = notify
+    }
+
     width: (isMobile)? appWindow.width : 300
     color: "transparent"
     anchors.bottom: parent.bottom
@@ -524,10 +528,9 @@ Rectangle {
                 id: proposalsButton
                 anchors.left: parent.left
                 anchors.right: parent.right
-                text: qsTr("Proposals") + translationManager.emptyString
+                text: qsTr("Active proposal") + translationManager.emptyString
                 symbol: qsTr("P") + translationManager.emptyString
-                dotColor: "#FF4F41"
-                under: transferButton
+                dotColor: "#04BCBC"
                 onClicked: {
                     parent.previousButton.checked = false
                     parent.previousButton = proposalsButton
