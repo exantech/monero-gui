@@ -300,6 +300,7 @@ Rectangle {
                         enabled: !root.proposal.answered
 
                         onClicked: {
+                            appWindow.showProcessingSplash("Sending proposal decision");
                             MoneroComponents.MsProto.sendProposalDecisionAsync(true, root.proposal);
                         }
                     }
@@ -312,6 +313,7 @@ Rectangle {
                         enabled: !root.proposal.answered
 
                         onClicked: {
+                            appWindow.showProcessingSplash("Sending proposal decision");
                             MoneroComponents.MsProto.sendProposalDecisionAsync(false, root.proposal);
                         }
                     }

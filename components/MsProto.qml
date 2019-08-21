@@ -30,6 +30,9 @@ QtObject {
     signal proposalSent(int id)
     signal sendProposalError(string message);
 
+    signal proposalDecisionSent()
+    signal proposalDecisionError(string message)
+
     property var activeProposal: null;
     property int staticRevision: 0;
 
@@ -720,12 +723,13 @@ QtObject {
 
                 switch (status) {
                 case 409:
-                    sendProposalError(text);
-                    //TODO: show error message
+                    sendProposalError("There is active proposal. Two unfinished transaction proposals can't exist at the same time.");
+                    console.warn("failed to post proposal: " + text)
                     break;
                 default:
                     //TODO: retry send on timer
                     sendProposalError(text);
+                    console.warn("failed to post proposal: " + text);
                     break;
                 }
             });
@@ -778,11 +782,12 @@ QtObject {
             .onError(function (status, text) {
                 if (status == 409) {
                     pendingDecision = null;
-                    error("Sending proposal decision is temporarily unavailable. Please try in a minute");
+                    proposalDecisionError("Someone else is trying to sign this transaction proposal. Please try again in a minute");
                     return;
                 }
 
                 pendingDecision.state = "pending";
+                proposalDecisionError("Failed to send proposal decision: " + text);
             });
 
         req.send();
@@ -803,14 +808,15 @@ QtObject {
                 console.error("proposal successfully sent");
                 pendingDecision.state = "sent";
 
-                if (decision.approved) {
+                if (activeProposal.approvals.length + 1 == meta.signaturesRequired && decision.approved) {
                     //debug my
                     console.error("committing transaction " + pendingDecision.pending_transaction.txid[0]);
                     //TODO: make the call after sending proposal decision?
                     mWallet.commitTransactionAsync(pendingDecision.pending_transaction);
+                    return;
                 }
 
-                //TODO: emit signal
+                proposalDecisionSent();
             }))
             .onError(function (status, text) {
                 //debug my
@@ -818,11 +824,11 @@ QtObject {
                 pendingDecision = null;
                 if (status === 409) {
                     pendingDecision.state = "pending";
-                    error("Sending proposal is temporarily unavailable. Please, try again in a minute");
+                    proposalDecisionError("Someone else is trying to sign this transaction proposal. Please try again in a minute");
                     return;
                 }
 
-                //TODO: emit signal
+                proposalDecisionError("Failed to send proposal decision: " + text);
             });
 
         req.send();

@@ -1054,14 +1054,43 @@ ApplicationWindow {
         console.error("Proposal successfully sent");
         appWindow.hideProcessingSplash();
         middlePanel.transferView.clearFields();
-        //TODO: add an actual implemention here
+
+        informationPopup.title = "Information"
+        informationPopup.text = "Proposal successfully sent"
+        informationPopup.icon = StandardIcon.Information
+        informationPopup.onCloseCallback = null
+        informationPopup.open()
     }
 
     function onSendProposalError(message) {
         //debug my
         console.error("failed to send proposal: " + message);
         appWindow.hideProcessingSplash();
-        //TODO: add an actual implemention here
+
+        informationPopup.title = "Error";
+        informationPopup.text = "Failed to send transaction proposal: " + message;
+        informationPopup.icon = StandardIcon.Error;
+        informationPopup.onCloseCallback = null;
+        informationPopup.open();
+    }
+
+    function onProposalDecisionSent() {
+        appWindow.hideProcessingSplash();
+
+        informationPopup.title = "Information";
+        informationPopup.text = "Proposal decision has been successfully sent";
+        informationPopup.icon = StandardIcon.Information;
+        informationPopup.onCloseCallback = null;
+        informationPopup.open();
+    }
+
+    function onProposalDecisionError(message) {
+        appWindow.hideProcessingSplash();
+        informationPopup.title = "Error";
+        informationPopup.text = "Failed to send proposal decision: " + message;
+        informationPopup.icon = StandardIcon.Error;
+        informationPopup.onCloseCallback = null;
+        informationPopup.open();
     }
 
     function onActiveProposal(prop) {
@@ -1408,6 +1437,8 @@ ApplicationWindow {
         MoneroComponents.MsProto.proposalSent.connect(onProposalSent);
         MoneroComponents.MsProto.sendProposalError.connect(onSendProposalError);
         MoneroComponents.MsProto.proposalChanged.connect(onActiveProposal);
+        MoneroComponents.MsProto.proposalDecisionSent.connect(onProposalDecisionSent);
+        MoneroComponents.MsProto.proposalDecisionError.connect(onProposalDecisionError);
 
         if(typeof daemonManager != "undefined") {
             daemonManager.daemonStarted.connect(onDaemonStarted);
