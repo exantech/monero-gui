@@ -355,6 +355,7 @@ Rectangle {
           LineEditMulti {
               visible: currentWallet.multisigState.multisig
               id: proposalDescriptionLine
+              labelText: qsTr("Transaction description") + translationManager.emptyString
               placeholderText: qsTr("This note is visible to your co-payers") + translationManager.emptyString
               Layout.fillWidth: true
           }

@@ -33,6 +33,7 @@ import QtQuick.Controls 2.0
 
 import "../js/Wizard.js" as Wizard
 import "../components" as MoneroComponents
+import moneroComponents.NetworkType 1.0
 
 Rectangle {
     id: wizardCreateMultisigWallet1
@@ -64,6 +65,23 @@ Rectangle {
                 id: walletInput
             }
 
+            MoneroComponents.LineEdit {
+                id: mwsUrlInput
+                Layout.fillWidth: true
+                Layout.topMargin: 20
+                labelText: qsTr("Multisignature wallet service url") + translationManager.emptyString
+                text: {
+                    if (appWindow.persistentSettings.nettype == NetworkType.MAINNET) {
+                        return "https://mws.exan.tech/";
+                    } else if (appWindow.persistentSettings.nettype == NetworkType.STAGENET) {
+                        return "https://mws-stage.exan.tech/";
+                    } else {
+                        return "";
+                    }
+                }
+                error: mwsUrlInput.text == ""
+            }
+
             ColumnLayout {
                 spacing: 0
 
@@ -74,7 +92,7 @@ Rectangle {
             WizardNav {
                 progressSteps: 4
                 progress: 1
-                btnNext.enabled: walletInput.verify();
+                btnNext.enabled: walletInput.verify() && mwsUrlInput.text != "";
                 btnPrev.text: qsTr("Back to menu") + translationManager.emptyString
                 onPrevClicked: {
                     wizardStateView.state = "wizardHome";
@@ -82,6 +100,7 @@ Rectangle {
                 onNextClicked: {
                     wizardController.walletOptionsName = walletInput.walletName.text;
                     wizardController.walletOptionsLocation = walletInput.walletLocation.text;
+                    wizardController.mwsUrl = normalizeMwsUrl('https', mwsUrlInput.text)
                     wizardStateView.state = "wizardCreateMultisigWallet2";
                 }
             }
@@ -92,5 +111,18 @@ Rectangle {
         if(previousView.viewName === "wizardHome"){
             walletInput.reset();
         }
+    }
+
+    function normalizeMwsUrl(defaultScheme, url) {
+        var c = url.split('://')
+        if (c.length === 1) {
+            url = defaultScheme + "://" + url
+        }
+
+        if (url[url.length-1] !== '/') {
+            url = url + '/'
+        }
+
+        return url
     }
 }

@@ -21,6 +21,7 @@ class MsMeta: public QObject {
     Q_PROPERTY(quint32 lastOutputsRevision READ getLastOutputsRevision WRITE setLastOutputsRevision)
     Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported NOTIFY lastOuputsImportedChanged)
     Q_PROPERTY(QString path READ getPath WRITE setPath)
+    Q_PROPERTY(QString mwsUrl READ getMwsUrl WRITE setMwsUrl)
 
 public:
     explicit MsMeta(QObject* parent = nullptr);
@@ -35,6 +36,9 @@ public:
 
     Q_INVOKABLE QString getState() const;
     Q_INVOKABLE void setState(const QString& s);
+
+    Q_INVOKABLE QString getMwsUrl() const;
+    Q_INVOKABLE void setMwsUrl(const QString& url);
 
     Q_INVOKABLE quint32 getSignaturesRequired() const;
     Q_INVOKABLE void setSignaturesRequired(quint32 s);
@@ -60,6 +64,7 @@ private:
     bool loaded;
     QString metaPath;
     QString state;
+    QString mwsUrl;
     quint32 signaturesRequired = 0;
     quint32 participantsCount = 0;
     quint32 keysRounds = 0;

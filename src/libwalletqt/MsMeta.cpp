@@ -67,6 +67,7 @@ bool MsMeta::save(QString path) {
 
     QJsonObject obj;
     obj.insert("state", state);
+    obj.insert("mwsUrl", mwsUrl);
     obj.insert("signaturesRequired", static_cast<int>(signaturesRequired));
     obj.insert("participantsCount", static_cast<int>(participantsCount));
     obj.insert("keysRounds", static_cast<int>(keysRounds));
@@ -96,6 +97,7 @@ bool MsMeta::load(QString path) {
         }
 
         state = obj["state"].toString();
+        mwsUrl = obj["mwsUrl"].toString();
         signaturesRequired = getMandatoryUint32(obj, "signaturesRequired");
         participantsCount = getMandatoryUint32(obj, "participantsCount");
         keysRounds = getMandatoryUint32(obj, "keysRounds");
@@ -144,6 +146,14 @@ quint32 MsMeta::getLastOutputsRevision() const {
 
 void MsMeta::setState(const QString& s) {
     state = s;
+}
+
+QString MsMeta::getMwsUrl() const {
+    return mwsUrl;
+}
+
+void MsMeta::setMwsUrl(const QString& url) {
+    mwsUrl = url;
 }
 
 void MsMeta::setSignaturesRequired(quint32 s) {

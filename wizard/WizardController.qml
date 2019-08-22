@@ -122,6 +122,7 @@ Rectangle {
     property string inviteCode
     property int signaturesCount: 0
     property int participantsCount: 0
+    property string mwsUrl
 
     // language settings, updated via sidebar
     property string language_locale: 'en_US'

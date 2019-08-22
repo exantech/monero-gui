@@ -72,6 +72,13 @@ ColumnLayout {
     }
 
     WizardSummaryItem {
+        Layout.fillWidth: true
+        header: qsTr("Multisignature wallet service url") + translationManager.emptyString
+        value: wizardController.mwsUrl
+        visible: wizardController.isMultisignature
+    }
+
+    WizardSummaryItem {
         visible: persistentSettings.remoteNodeAddress !== "" && appWindow.walletMode == 0
         Layout.fillWidth: true
         header: qsTr("Daemon address") + translationManager.emptyString

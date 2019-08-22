@@ -266,8 +266,6 @@ ApplicationWindow {
         userInActivityTimer.running = true;
         simpleModeConnectionTimer.running = true;
 
-        //debug my
-        console.error("checking if wallet is defined");
         // wallet already opened with wizard, we just need to initialize it
         if (typeof wizard.m_wallet !== 'undefined') {
             console.log("using wizard wallet")
@@ -281,11 +279,12 @@ ApplicationWindow {
 
             if (wizard.isMultisignature) {
                 var meta = metaFactory.createMeta();
-                meta.state = !wizard.joiningMultisig ? "personal" : "joining"
-                meta.signaturesRequired = wizard.signaturesCount
-                meta.participantsCount = wizard.participantsCount
-                meta.save(persistentSettings.wallet_path + ".meta")
+                meta.state = !wizard.joiningMultisig ? "personal" : "joining";
+                meta.signaturesRequired = wizard.signaturesCount;
+                meta.participantsCount = wizard.participantsCount;
+                meta.save(persistentSettings.wallet_path + ".meta");
                 meta.path = persistentSettings.wallet_path + ".meta";
+                meta.mwsUrl = wizard.mwsUrl;
 
                 MoneroComponents.MsProto.meta = meta;
                 MoneroComponents.MsProto.inviteCode = wizard.inviteCode

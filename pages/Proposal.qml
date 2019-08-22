@@ -280,7 +280,7 @@ Rectangle {
                 }
 
                 // Proposal description
-                MoneroComponents.LineEdit {
+                MoneroComponents.LineEditMulti {
                     Layout.fillWidth: true
                     readOnly: true
                     labelText: qsTr("Transaction description") + translationManager.emptyString

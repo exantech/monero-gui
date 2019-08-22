@@ -3,9 +3,9 @@ pragma Singleton
 import QtQuick 2.0
 
 import "../js/Request.js" as Request
+import moneroComponents.NetworkType 1.0
 
 QtObject {
-    property string mwsUrl: "https://mws-stage.exan.tech/"
     property string apiVersion: "api/v1/"
 
     property var meta
@@ -38,13 +38,6 @@ QtObject {
 
     property Timer timer: Timer{
         interval: 2000
-        running: false
-        repeat: true
-        triggeredOnStart: false
-    }
-
-    property Timer repeatTimer: Timer {
-        interval: 5000
         running: false
         repeat: true
         triggeredOnStart: false
@@ -92,6 +85,20 @@ QtObject {
 
         if (sessionId != "") {
             throw "multisignature protocol already started";
+        }
+
+        if (!meta) {
+            throw "no multisignature meta assigned, check if your wallet's meta file exists";
+        }
+
+        if (!meta.mwsUrl) {
+            if (mWallet.nettype == NetworkType.MAINNET) {
+                meta.mwsUrl = "https://mws.exan.tech/";
+            } else if (mWallet.nettype == NetworkType.STAGENET) {
+                meta.mwsUrl = "https://mws-stage.exan.tech/";
+            } else {
+                throw "mws url is not set";
+            }
         }
 
         mWallet.refreshed.connect(onWalletRefreshed)
@@ -928,7 +935,7 @@ QtObject {
     }
 
     function getUrl(method) {
-        return mwsUrl + apiVersion + method
+        return meta.mwsUrl + apiVersion + method
     }
 
     function nextNonce() {
