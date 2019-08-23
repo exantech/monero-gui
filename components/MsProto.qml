@@ -559,8 +559,7 @@ QtObject {
         console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
         if (n > meta.lastOutputsRevision) {
             exchangeOutputs(n);
-            importOutputs(meta.lastOutputsRevision);
-        } else if (meta.lastOutputsImported === 0) {
+        } else if (meta.lastOutputsImported < meta.participantsCount) {
             importOutputs(meta.lastOutputsRevision);
         } else {
             exchangingOutputs = false;
@@ -634,9 +633,9 @@ QtObject {
                 meta.lastOutputsRevision = n;
                 meta.lastOutputsImported = 0;
                 meta.save();
-                exchangingOutputs = false;
                 //debug my
-                console.error("outputs exported successfully");
+                console.error("outputs exported successfully. Checking for import");
+                importOutputs(n);
             }))
             .onError(function (status, text) {
                 getStdError("export outputs")(status, text);
@@ -667,6 +666,13 @@ QtObject {
                 console.log("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
                 //debug my
                 console.error("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
+                return;
+            }
+
+            if (meta.lastOutputsImported >= toImport.length) {
+                console.log("Last outputs imported: " + meta.lastOutputsImported + ", ready to import: " + toImport.length + ". No new outputs available");
+                //debug my
+                console.error("Last outputs imported: " + meta.lastOutputsImported + ", ready to import: " + toImport.length + ". No new outputs available");
                 return;
             }
 
