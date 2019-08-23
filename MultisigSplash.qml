@@ -24,40 +24,168 @@ Item {
 
             Label {
                 id: multisigWaitLabel
+                Layout.alignment: Qt.AlignHCenter
                 color: MoneroComponents.Style.defaultFontColor
-                font.pixelSize: 16 * scaleRatio
+                font.pixelSize: 16
 
                 text: "Connecting to server..."
             }
 
-            RowLayout {
-                id: inviteCodeLayout
-                visible: false
-                spacing: 10
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 2
+                Layout.bottomMargin: 2
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
 
-                Label {
-                    id: multisigInviteCode
-                    anchors.left: parent.left
-                    color: MoneroComponents.Style.defaultFontColor
-                    font.pixelSize: 16 * scaleRatio
+            GridLayout {
+                id: inviteCodeLayout
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 15
+
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
+
+                    MoneroComponents.TextBlock {
+                        anchors.right: parent.right
+                        Layout.alignment: Qt.AlignVCenter
+                        font.pixelSize: 16
+                        text: "Invite code"
+                    }
                 }
 
-                MoneroComponents.IconButton {
-                    id: copyButton
-                    image: "qrc:///images/copy.svg"
-                    anchors.right: parent.right
-                    width: 12
-                    height: 15
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
 
-                    onClicked: {
-                        clipboard.setText(multisigSplash.walletInviteCode);
-                        appWindow.showStatusMessage(qsTr("Invite code copied to clipboard"),3);
+                    RowLayout {
+                        MoneroComponents.TextBlock {
+                            id: multisigInviteCode
+                            Layout.alignment: Qt.AlignVCenter
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+
+                        MoneroComponents.IconButton {
+                            id: copyButton
+                            visible: multisigInviteCode.text != ""
+                            image: "qrc:///images/copy.svg"
+                            width: 12
+                            height: 15
+                            Layout.rightMargin: parent.right
+
+                            onClicked: {
+                                clipboard.setText(multisigSplash.walletInviteCode);
+                                appWindow.showStatusMessage(qsTr("Invite code copied to clipboard"),3);
+                            }
+                        }
                     }
                 }
             }
 
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 2
+                Layout.bottomMargin: 2
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 15
+
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
+
+                    MoneroComponents.TextBlock {
+                        anchors.right: parent.right
+                        Layout.alignment: Qt.AlignVCenter
+                        font.pixelSize: 16
+                        text: "Participants joined"
+                    }
+                }
+
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
+
+                    MoneroComponents.TextBlock {
+                        id: participantsLabel
+                        Layout.alignment: Qt.AlignVCenter
+                        font.pixelSize: 16
+                        font.bold: true
+                        text: "1 / 2"
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 2
+                Layout.bottomMargin: 2
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 15
+
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
+
+                    MoneroComponents.TextBlock {
+                        anchors.right: parent.right
+                        Layout.alignment: Qt.AlignVCenter
+                        font.pixelSize: 16
+                        text: "Key exchange rounds"
+                    }
+                }
+
+                Rectangle {
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 20
+                    color: "transparent"
+
+                    MoneroComponents.TextBlock {
+                        id: exchangeRoundsLabel
+                        Layout.alignment: Qt.AlignVCenter
+                        font.pixelSize: 16
+                        font.bold: true
+                        text: "0"
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.preferredHeight: 1
+                Layout.topMargin: 2
+                Layout.bottomMargin: 2
+                Layout.fillWidth: true
+                color: MoneroComponents.Style.dividerColor
+                opacity: MoneroComponents.Style.dividerOpacity
+            }
+
             MoneroComponents.StandardButton {
                 text: "Back"
+                Layout.topMargin: 10
+                Layout.alignment: Qt.AlignHCenter
                 onClicked: {
                     MoneroComponents.MsProto.stop();
                     appWindow.showWizard();
@@ -81,7 +209,7 @@ Item {
         onInviteCodeReceived: {
             inviteCodeLayout.visible = true
             multisigWaitLabel.text = "Share invite code";
-            multisigInviteCode.text = "Invite code: <b>" + shortInviteCode(inviteCode, 16) + "</b>";
+            multisigInviteCode.text = shortInviteCode(inviteCode, 9);
             walletInviteCode = inviteCode
         }
 
@@ -90,7 +218,7 @@ Item {
         }
 
         onKeyExchangeRoundPassed: {
-            multisigWaitLabel.text = "Performing keys exchange round #" + (newRoundNumber + 1);
+            exchangeRoundsLabel.text = newRoundNumber
         }
 
         onWalletCreated: {
