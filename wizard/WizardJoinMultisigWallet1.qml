@@ -64,15 +64,14 @@ Rectangle {
             }
 
             RowLayout {
-                id: addressLineRow
                 Layout.fillWidth: true
 
                 MoneroComponents.LineEditMulti {
                     id: inviteCodeLine
+                    Layout.topMargin: 20
                     spacing: 0
                     fontBold: true
                     labelText: "Invite code"
-                    placeholderText: "TODO: Check if invite code is valid"
                     wrapMode: Text.WrapAnywhere
                     addressValidation: false
                     pasteButton: true
@@ -86,6 +85,7 @@ Rectangle {
             WizardNav {
                 progressSteps: 4
                 progress: 1
+                btnNext.enabled: walletInput.verify() && inviteCodeLine.text != "";
                 onPrevClicked: {
                     wizardStateView.state = "wizardHome";
                     wizardController.isMultisignature = false;
