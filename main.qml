@@ -2276,6 +2276,8 @@ ApplicationWindow {
     }
 
     onClosing: {
+        //debug my
+        console.error("appwindow on closing started");
         close.accepted = false;
         console.log("blocking close event");
         if(isAndroid) {
@@ -2294,9 +2296,12 @@ ApplicationWindow {
 
         }
 
+        //debug my
+        console.error("appwindow on closing: checking if daemon is running");
         // If daemon is running - prompt user before exiting
         if(typeof daemonManager != "undefined" && daemonManager.running(persistentSettings.nettype)) {
-
+            //debug my
+            console.error("appwindow on closing: daemon is running");
             // Show confirmation dialog
             confirmationDialog.title = qsTr("Daemon is running") + translationManager.emptyString;
             confirmationDialog.text  = qsTr("Daemon will still be running in background when GUI is closed.");
@@ -2311,9 +2316,13 @@ ApplicationWindow {
                 closeAccepted();
             };
 
+            //debug my
+            console.error("appwindow on closing: openning dialog");
             confirmationDialog.open()
 
         } else {
+            //debug my
+            console.error("appwindow on closing: daemon is not running, closing app");
             closeAccepted();
         }
     }

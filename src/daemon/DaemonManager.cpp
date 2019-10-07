@@ -248,6 +248,8 @@ bool DaemonManager::running(NetworkType::Type nettype) const
     QString status;
     sendCommand("status", nettype, status);
     qDebug() << status;
+    //debug my
+    qCritical() << "daemon status text: " << status;
     // `./monerod status` returns BUSY when syncing.
     // Treat busy as connected, until fixed upstream.
     if (status.contains("Height:") || status.contains("BUSY") ) {
@@ -274,6 +276,8 @@ bool DaemonManager::sendCommand(const QString &cmd, NetworkType::Type nettype, Q
         external_cmd << "--stagenet";
 
     qDebug() << "sending external cmd: " << external_cmd;
+    //debug my
+    qCritical() << "sending external cmd: " << external_cmd;
 
 
     p.start(m_monerod, external_cmd);
