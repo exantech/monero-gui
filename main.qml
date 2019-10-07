@@ -2297,6 +2297,7 @@ ApplicationWindow {
         }
 
         //debug my
+        closeAccepted();
         console.error("appwindow on closing: checking if daemon is running");
         // If daemon is running - prompt user before exiting
         if(typeof daemonManager != "undefined" && daemonManager.running(persistentSettings.nettype)) {
