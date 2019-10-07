@@ -2329,10 +2329,18 @@ ApplicationWindow {
 
     function closeAccepted(){
         console.log("close accepted");
+        //debug my
+        console.error("close accepted entered");
         // Close wallet non async on exit
         daemonManager.exit();
+        //debug my
+        console.error("close accepted: deamonManager.exit() returned");
         walletManager.closeWallet();
+        //debug my
+        console.error("close accepted: walletManager.closeWallet() returned");
         Qt.quit();
+        //debug my
+        console.error("close accepted: Qt.quit() returned");
     }
 
     function onWalletCheckUpdatesComplete(update) {
