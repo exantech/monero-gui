@@ -132,7 +132,6 @@ Rectangle {
                 }
             }
 
-            //debug my
             Rectangle {
                 Layout.preferredHeight: 1
                 Layout.topMargin: 3 * scaleRatio
@@ -174,7 +173,6 @@ Rectangle {
                     wizardStateView.state = "wizardJoinMultisigWallet1"
                 }
             }
-            //end debug my
 
             RowLayout {
                 Layout.fillWidth: true

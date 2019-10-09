@@ -113,7 +113,6 @@ void HttpClient::requestFinished(QNetworkReply *reply) {
             }
 
             auto url = QUrl(url_).resolved(location.toUrl());
-            //debug my
             qWarning() << "redirecting to " << url;
             setUrl(url.toString());
             send();

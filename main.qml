@@ -314,8 +314,7 @@ ApplicationWindow {
                 existing_meta.path = metaPath + ".meta";
                 MoneroComponents.MsProto.meta = existing_meta;
             } else {
-                //debug my
-                console.error("couldn't load multisig meta");
+                console.info("couldn't load multisig meta");
             }
 
             walletManager.openWalletAsync(wallet_path, walletPassword,
@@ -603,8 +602,7 @@ ApplicationWindow {
         }
 
         if (MoneroComponents.MsProto.meta) {
-            //debug my
-            console.error("on loaded wallet. signatures: " + MoneroComponents.MsProto.meta.signaturesRequired + ", participants: " + MoneroComponents.MsProto.meta.participantsCount + ", state: " + MoneroComponents.MsProto.meta.state);
+            console.info("on loaded wallet. signatures: " + MoneroComponents.MsProto.meta.signaturesRequired + ", participants: " + MoneroComponents.MsProto.meta.participantsCount + ", state: " + MoneroComponents.MsProto.meta.state);
 
             MoneroComponents.MsProto.mWallet = currentWallet
             MoneroComponents.MsProto.start()
@@ -616,7 +614,6 @@ ApplicationWindow {
 
     }
 
-    //debug my
     Connections {
         target: MoneroComponents.MsProto
 
@@ -624,7 +621,6 @@ ApplicationWindow {
             notifier.show(msg);
         }
     }
-    //end debug my
 
     function onWalletClosed(walletAddress) {
         hideProcessingSplash();
@@ -1049,8 +1045,7 @@ ApplicationWindow {
     }
 
     function onProposalSent(id) {
-        //debug my
-        console.error("Proposal successfully sent");
+        console.info("Proposal successfully sent");
         appWindow.hideProcessingSplash();
         middlePanel.transferView.clearFields();
 
@@ -1062,8 +1057,7 @@ ApplicationWindow {
     }
 
     function onSendProposalError(message) {
-        //debug my
-        console.error("failed to send proposal: " + message);
+        console.warn("failed to send proposal: " + message);
         appWindow.hideProcessingSplash();
 
         informationPopup.title = "Error";
@@ -1733,7 +1727,6 @@ ApplicationWindow {
         messageText: qsTr("Please wait...") + translationManager.emptyString
     }
 
-    //debug my
     MultisigSplash {
         id: multisigSplash
         visible: false
@@ -1742,7 +1735,6 @@ ApplicationWindow {
             rootItem.state = "normal";
         }
     }
-    //end debug my
 
     Item {
         id: rootItem

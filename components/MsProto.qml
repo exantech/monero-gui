@@ -52,8 +52,7 @@ QtObject {
             return
         }
 
-        //debug my
-        console.error("Stopping protocol");
+        console.info("Stopping protocol");
         timer.stop();
         timer.onTriggered.disconnect(exchangeKeys);
         if (mWallet) {
@@ -110,8 +109,7 @@ QtObject {
 
     function onOpenSessionResponse() {
         sessionOpened();
-        //debug my
-        console.error("session opened.")
+        console.info("session opened.")
 
         switch (meta.state) {
         case "personal":
@@ -136,8 +134,7 @@ QtObject {
             signerKey = mWallet.publicMultisigSignerKey;
         }
 
-        //debug my
-        console.error("openning session. public key: " + signerKey + ", keys rounds: " + meta.keysRounds);
+        console.info("openning session...");
         var data = JSON.stringify({
             'public_key': signerKey
         });
@@ -181,8 +178,7 @@ QtObject {
                 meta.save();
 
                 inviteCodeReceived(obj.invite_code);
-                //debug my
-                console.error("invite code: " + obj.invite_code);
+                console.info("invite code: " + obj.invite_code);
                 timer.onTriggered.connect(exchangeKeys);
                 timer.start();
             }))
@@ -194,8 +190,7 @@ QtObject {
     function exchangeKeys() {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
-        //debug my
-        console.error("exchange keys. changed keys: " + meta.keysRounds);
+        console.info("exchange keys. changed keys: " + meta.keysRounds);
 
         var url = getUrl("info/multisig");
         var name = "multisig info";
@@ -223,8 +218,7 @@ QtObject {
 
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
-        //debug my
-        console.error("push extra multisig info data: " + data);
+        console.info("pushing extra multisig info");
 
         var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
@@ -253,8 +247,7 @@ QtObject {
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .setData(data)
             .onSuccess(getHandler("change public key", function (obj) {
-                //debug my
-                console.error("public key changed successfully");
+                console.info("public key changed successfully");
                 callback();
             }))
             .onError(getStdError("change public key"));
@@ -265,8 +258,6 @@ QtObject {
     function processMultisigInfo(resp) {
         try {
             timer.stop();
-            //debug my
-            console.error("multisig info response: " + JSON.stringify(resp, null, ' '));
 
             if (resp.multisig_infos.length !== meta.participantsCount) {
                 timer.start();
@@ -292,8 +283,7 @@ QtObject {
                 });
             } else {
                 timer.onTriggered.disconnect(exchangeKeys);
-                //debug my
-                console.error("wallet created. secret key: " + mWallet.secretSpendKey);
+                console.info("wallet created");
                 meta.state = "ready";
                 meta.save();
 
@@ -309,16 +299,13 @@ QtObject {
     function processExtraMultisigInfo(resp) {
         try {
             timer.stop();
-            //debug my
-            console.error("extra multisig info response: " + JSON.stringify(resp, null, ' '));
 
             if (resp.extra_multisig_infos.length !== meta.participantsCount) {
                 timer.start()
                 return
             }
 
-            //debug my
-            console.error("accepting extra multisig info. current state: " + meta.state)
+            console.info("accepting extra multisig info. current state: " + meta.state)
             var oldSecretKey = mWallet.secretSpendKey;
             var multisig_infos = resp.extra_multisig_infos.map(function (x) {return x.extra_multisig_info});
             var extra_ms_info = mWallet.exchangeMultisigKeys(multisig_infos);
@@ -348,8 +335,7 @@ QtObject {
     }
 
     function joinWallet() {
-        //debug my
-        console.error("joining wallet with invite code: " + inviteCode);
+        console.info("joining wallet with invite code: " + inviteCode);
 
         var data = JSON.stringify({
             "invite_code": inviteCode,
@@ -358,8 +344,6 @@ QtObject {
 
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
-        //debug my
-        console.error("join wallet. secret key: " + mWallet.secretSpendKey);
 
         var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
@@ -393,8 +377,6 @@ QtObject {
     }
 
     function infoHandler(info) {
-        //debug my
-        console.error("wallet info response: " + JSON.stringify(info));
         if (meta.signaturesRequired === 0) {
             meta.signaturesRequired = info.signers;
         }
@@ -415,8 +397,6 @@ QtObject {
     }
 
     function onWalletRefreshed() {
-        //debug my
-        console.error("wallet refreshed. state: " + meta.state + ", sycnhronized: " + mWallet.synchronized + ", exchanging outputs: " + exchangingOutputs);
         if (meta.state !== "ready") {
             return;
         }
@@ -426,8 +406,7 @@ QtObject {
         }
 
         if (exchangingOutputs) {
-            //debug my
-            console.error("another exchanging outputs process");
+            console.info("another exchanging outputs process");
             return;
         }
 
@@ -445,8 +424,7 @@ QtObject {
             .setUrl(getUrl("revision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .onSuccess(getHandler("static revision number", function (obj) {
-                //debug my
-                console.error("static revision number: " + obj.revision);
+                console.info("static revision number: " + obj.revision);
                 staticRevision = obj.revision;
                 getProposals();
             }))
@@ -459,8 +437,7 @@ QtObject {
     }
 
     function getProposals() {
-        //debug my
-        console.error("Getting proposals");
+        console.info("Getting proposals");
 
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
@@ -470,8 +447,7 @@ QtObject {
             .setUrl(getUrl("tx_proposals"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .onSuccess(getHandler("transaction proposals", function (props) {
-                //debug my
-                console.error("props count: " + props.length);
+                console.info("props count: " + props.length);
 
                 var hasActive = false;
                 for (var i = 0; i < props.length; i++) {
@@ -508,15 +484,11 @@ QtObject {
     }
 
     function processOutputsExchangeState() {
-        //debug my
-        console.error("processing outputs state");
-
         var uniq = {};
         for (var i = 0; i < mWallet.history.count; i++) {
             var tx = mWallet.history.transaction(i)
             if (tx.confirmations === 0) {
-                //debug my
-                console.error("have at least one unconfimed transaction");
+                console.info("have at least one unconfimed transaction");
                 exchangingOutputs = false;
                 return;
             }
@@ -524,17 +496,14 @@ QtObject {
             uniq[tx.hash] = 1;
         }
 
-        //debug my
-        console.error("static revision number: " + staticRevision);
+        console.info("static revision number: " + staticRevision);
         var txCount = Object.keys(uniq).length;
-        //debug my
-        console.error("tx count: " + txCount);
+        console.info("tx count: " + txCount);
         var n = staticRevision + txCount;
 
         if (activeProposal != null) {
             if (meta.lastOutputsImported === 0) {
-                //debug my
-                console.error("has active proposal, but import operation isn't finished. trying to import outputs neverthless");
+                console.info("has active proposal, but import operation isn't finished. trying to import outputs neverthless");
 
                 // let's consider the following case:
                 // we have 2/2 multisig wallet. all of participants synced their outputs. then:
@@ -549,28 +518,24 @@ QtObject {
                 return
             }
 
-            //debug my
-            console.error("has active proposal, postponing outputs exchange");
+            console.info("has active proposal, postponing outputs exchange");
             exchangingOutputs = false;
             return;
         }
 
-        //debug my
-        console.error("n: " + n + ", last n: " + meta.lastOutputsRevision);
+        console.info("n: " + n + ", last n: " + meta.lastOutputsRevision);
         if (n > meta.lastOutputsRevision) {
             exchangeOutputs(n);
         } else if (meta.lastOutputsImported < meta.participantsCount) {
             importOutputs(meta.lastOutputsRevision);
         } else {
             exchangingOutputs = false;
-            //debug my
-            console.error("nothing is changed, no need to export. has partial key images: " + mWallet.hasMultisigPartialKeyImages());
+            console.info("nothing is changed, no need to export. has partial key images: " + mWallet.hasMultisigPartialKeyImages());
         }
     }
 
     function exchangeOutputs(n) {
-        //debug my
-        console.error("trying to exchange outputs w/ n = " + n);
+        console.info("trying to exchange outputs w/ n = " + n);
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
 
@@ -587,19 +552,13 @@ QtObject {
                     console.warn("can't exchange outputs");
                     break;
                 case 400:
-                    console.log("can't exchange outputs: revision is too small - " + n);
-                    //debug my
                     console.error("can't exchange outputs: revision is too small - " + n);
                     break;
                 case 409:
-                    console.log("can't exchange outputs: outputs from this wallet have already been sent");
-                    //debug my
                     console.error("can't exchange outputs: outputs from this wallet have already been sent");
                     break;
                 case 412:
-                    console.log("can't exchange outputs: there is active proposal");
-                    //debug my
-                    console.error("can't exchange outputs: there is active proposal");
+                    console.warn("can't exchange outputs: there is active proposal");
                     break;
                 default:
                     console.warn("can't exchange outputs: unknown HTTP status - " + status + ", " + text);
@@ -613,8 +572,7 @@ QtObject {
     }
 
     function sendOutputs(n) {
-        //debug my
-        console.error("sending outputs");
+        console.info("sending outputs");
         var outputs = mWallet.exportMultisigImages();
         var data = JSON.stringify({
             "outputs": outputs
@@ -629,12 +587,10 @@ QtObject {
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .setData(data)
             .onSuccess(getHandler("export outputs", function () {
-                console.log("outputs exported successfully");
                 meta.lastOutputsRevision = n;
                 meta.lastOutputsImported = 0;
                 meta.save();
-                //debug my
-                console.error("outputs exported successfully. Checking for import");
+                console.info("outputs exported successfully. Checking for import");
                 importOutputs(n);
             }))
             .onError(function (status, text) {
@@ -663,25 +619,19 @@ QtObject {
             }
 
             if (toImport.length < meta.signaturesRequired) {
-                console.log("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
-                //debug my
-                console.error("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
+                console.info("Not enough participants exported their outputs (" + toImport.length + " of at least " + meta.signaturesRequired + "). Postponing import");
                 return;
             }
 
             if (meta.lastOutputsImported >= toImport.length) {
-                console.log("Last outputs imported: " + meta.lastOutputsImported + ", ready to import: " + toImport.length + ". No new outputs available");
-                //debug my
-                console.error("Last outputs imported: " + meta.lastOutputsImported + ", ready to import: " + toImport.length + ". No new outputs available");
+                console.info("Last outputs imported: " + meta.lastOutputsImported + ", ready to import: " + toImport.length + ". No new outputs available");
                 return;
             }
 
             var imported = mWallet.importMultisigImages(toImport); //TODO: check status
             meta.lastOutputsImported = toImport.length;
             meta.save();
-            console.log("imported " + imported + " outputs of " + meta.participantsCount + " participants");
-            //debug my
-            console.error("imported " + imported + " outputs of " + meta.participantsCount + " participants");
+            console.info("imported " + imported + " outputs of " + meta.participantsCount + " participants");
         });
 
         var nonce = nextNonce();
@@ -817,13 +767,11 @@ QtObject {
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .setData(data)
             .onSuccess(getHandler("proposal decision", function (obj) {
-                //debug my
-                console.error("proposal successfully sent");
+                console.info("proposal successfully sent");
                 pendingDecision.state = "sent";
 
                 if (activeProposal.approvals.length + 1 == meta.signaturesRequired && decision.approved) {
-                    //debug my
-                    console.error("committing transaction " + pendingDecision.pending_transaction.txid[0]);
+                    console.info("committing transaction " + pendingDecision.pending_transaction.txid[0]);
                     //TODO: make the call after sending proposal decision?
                     mWallet.commitTransactionAsync(pendingDecision.pending_transaction);
                     return;
@@ -832,7 +780,6 @@ QtObject {
                 proposalDecisionSent();
             }))
             .onError(function (status, text) {
-                //debug my
                 console.warn("failed to send proposal decision (" + status + "): " + text)
                 pendingDecision = null;
                 if (status === 409) {
@@ -859,8 +806,7 @@ QtObject {
             return;
         }
 
-        //debug my
-        console.error("multisig transaction successfully restored");
+        console.info("multisig transaction successfully restored");
 
         pendingTransaction.signMultisigTx();
         if (pendingTransaction.status != 0) {
@@ -888,8 +834,7 @@ QtObject {
         var nonce = nextNonce();
         var signature = walletManager.signMessage(data + sessionId + nonce, mWallet.secretSpendKey);
 
-        //debug my
-        console.error("transaction committed, tx hash: " + txid + ", sending relay status");
+        console.info("transaction committed, tx hash: " + txid + ", sending relay status");
 
         var req = new Request.Request(httpFactory.createHttpClient())
             .setMethod("POST")
@@ -897,8 +842,7 @@ QtObject {
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .setData(data)
             .onSuccess(getHandler("tx relay status", function (obj) {
-                //debug my
-                console.error("proposal successfully sent");
+                console.info("proposal successfully sent");
                 pendingDecision = null;
             }))
             .onError(getStdError("tx relay status"));
@@ -912,8 +856,7 @@ QtObject {
     }
 
     function incStaticRevision() {
-        //debug my
-        console.error("incrementing revision static counter");
+        console.info("incrementing revision static counter");
 
         var nonce = nextNonce();
         var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
@@ -923,14 +866,11 @@ QtObject {
             .setUrl(getUrl("revision"))
             .setHeaders(getHeaders(sessionId, nonce, signature))
             .onSuccess(getHandler("increment revision", function (obj) {
-                //debug my
-                console.error("revision incremented: " + JSON.stringify(obj));
+                console.info("revision incremented: " + JSON.stringify(obj));
                 staticRevision = obj.revision;
             }))
             .onError(getStdError("increment revision"));
 
-        //debug my
-        console.error("sending post revision request");
         req.send();
     }
 
