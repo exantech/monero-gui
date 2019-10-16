@@ -1505,8 +1505,16 @@ ApplicationWindow {
         property bool historyShowAdvanced: false
         property bool historyHumanDates: true
         property string blockchainDataDir: ""
-        property bool useRemoteNode: false
-        property string remoteNodeAddress: ""
+        property bool useRemoteNode: true
+        property string remoteNodeAddress: {
+            if (nettype == NetworkType.MAINNET) {
+                return "monero.exan.tech:18081";
+            } else if (nettype == NetworkType.STAGENET) {
+                return "monero-stage.exan.tech:38081";
+            } else {
+                return "";
+            }
+        }
         property string bootstrapNodeAddress: ""
         property string remoteNodeRegion: ""
         property bool segregatePreForkOutputs: true

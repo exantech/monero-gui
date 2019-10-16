@@ -51,7 +51,7 @@ ColumnLayout {
         Layout.fillWidth: true
         text: qsTr("Start a node automatically in background (recommended)") + translationManager.emptyString
         fontSize: 16
-        checked: !appWindow.persistentSettings.useRemoteNode && !isAndroid && !isIOS
+        checked: false
         visible: !isAndroid && !isIOS
         onClicked: {
             checked = true;
@@ -174,7 +174,7 @@ ColumnLayout {
         Layout.topMargin: 8
         text: qsTr("Connect to a remote node") + translationManager.emptyString
         fontSize: 16
-        checked: appWindow.persistentSettings.useRemoteNode
+        checked: true
         onClicked: {
             checked = true
             localNode.checked = false
