@@ -126,7 +126,7 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                         font.pixelSize: 16
                         font.bold: true
-                        text: "1 / 2"
+                        text: "... / " + MoneroComponents.MsProto.meta.participantsCount
                     }
                 }
             }
@@ -215,6 +215,10 @@ Item {
 
         onJoinedToWallet: {
             multisigWaitLabel.text = "Joined to wallet, exchanging with keys...";
+        }
+
+        onParticipantsUpdate: {
+            participantsLabel.text = signaturesRequired + " / " + participantsCount;
         }
 
         onKeyExchangeRoundPassed: {

@@ -22,6 +22,7 @@ QtObject {
     signal inviteCodeReceived(string inviteCode)
     signal keyExchangeRoundPassed(int newRoundNumber)
     signal joinedToWallet
+    signal participantsUpdate(int signaturesRequired, int participantsCount)
     signal walletCreated
     signal error(string msg)
 
@@ -113,7 +114,7 @@ QtObject {
 
         switch (meta.state) {
         case "personal":
-            createWallet("good wallet");
+            createWallet("exa wallet");
             break;
         case "joining":
             joinWallet();
@@ -258,6 +259,8 @@ QtObject {
     function processMultisigInfo(resp) {
         try {
             timer.stop();
+
+            participantsUpdate(resp.multisig_infos.length, meta.participantsCount);
 
             if (resp.multisig_infos.length !== meta.participantsCount) {
                 timer.start();
