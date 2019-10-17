@@ -16,7 +16,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#161616"
+        color: MoneroComponents.Style.blackTheme ? "#161616" : "white"
+        opacity: MoneroComponents.Style.blackTheme ? 1.0 : 0.9
 
         ColumnLayout {
             anchors.centerIn: parent
