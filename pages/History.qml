@@ -935,7 +935,7 @@ Rectangle {
                                 }
 
                                 MoneroComponents.StandardButton {
-                                    visible: isout
+                                    visible: isout && !currentWallet.multisigState.multisig
                                     anchors.left: btnDetails.right
                                     anchors.leftMargin: 10
                                     text: FontAwesome.productHunt
