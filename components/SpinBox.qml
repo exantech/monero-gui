@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
 
 import "../components" as MoneroComponents
+import FontAwesome 1.0
 
 SpinBox {
     //TODO: on hover cursor
@@ -34,9 +35,10 @@ SpinBox {
         height: parent.height
         width: 25
 
-        Image {
-            source: "qrc:///images/minus-white.png"
+        Label {
             anchors.centerIn: parent
+            text: FontAwesome.minus
+            color: MoneroComponents.Style.defaultFontColor
         }
     }
 
@@ -46,9 +48,10 @@ SpinBox {
         height: parent.height
         width: 25
 
-        Image {
-            source: "qrc:///images/plus-white.png"
+        Label {
             anchors.centerIn: parent
+            text: FontAwesome.plus
+            color: MoneroComponents.Style.defaultFontColor
         }
     }
 
