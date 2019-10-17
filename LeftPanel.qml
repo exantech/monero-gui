@@ -538,13 +538,11 @@ Rectangle {
                 }
             }
 
-            Rectangle {
+            MoneroComponents.MenuButtonDivider {
                 visible: proposalsButton.present
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.leftMargin: 16
-                color: "#313131"
-                height: 1
             }
 
             // ------------- Receive tab ---------------
