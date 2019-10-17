@@ -161,6 +161,7 @@ ApplicationWindow {
         else if(seq === "Ctrl+Y") leftPanel.keysClicked()
         else if(seq === "Ctrl+D") middlePanel.state = "Advanced"
         else if(seq === "Ctrl+T") middlePanel.state = "Account"
+        else if(seq === "Ctrl+P") { leftPanel.selectItem("Proposal"); middlePanel.state = "Proposal" }
         else if(seq === "Ctrl+Tab" || seq === "Alt+Tab") {
             /*
             if(middlePanel.state === "Transfer") middlePanel.state = "Receive"

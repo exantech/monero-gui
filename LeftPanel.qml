@@ -85,6 +85,7 @@ Rectangle {
         else if(pos === "Advanced") menuColumn.previousButton = advancedButton
         else if(pos === "Keys") menuColumn.previousButton = keysButton
         else if(pos === "Account") menuColumn.previousButton = accountButton
+        else if(pos === "Proposal") menuColumn.previousButton = proposalsButton
         menuColumn.previousButton.checked = true
     }
 
