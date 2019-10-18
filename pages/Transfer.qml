@@ -337,6 +337,7 @@ Rectangle {
                   iconOnTheLeft: true
                   Layout.fillWidth: true
                   text: qsTr("Add description") + translationManager.emptyString
+                  labelWrapMode: Text.NoWrap
                   onClicked: {
                       if (!descriptionCheckbox.checked) {
                         descriptionLine.text = "";

@@ -1317,6 +1317,7 @@ Rectangle {
                     root.updateDisplay(root.txOffset, root.txMax, false);
                 }
                 text: qsTr("Human readable date format") + translationManager.emptyString
+                labelWrapMode: Text.NoWrap
             }
 
             MoneroComponents.StandardButton {
