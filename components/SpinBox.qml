@@ -35,10 +35,9 @@ SpinBox {
         height: parent.height
         width: 25
 
-        Label {
+        Image {
+            source: MoneroComponents.Style.blackTheme ? "qrc:///images/minus-white.png" : "qrc:///images/minus-black.png"
             anchors.centerIn: parent
-            text: FontAwesome.minus
-            color: MoneroComponents.Style.defaultFontColor
         }
     }
 
@@ -48,10 +47,9 @@ SpinBox {
         height: parent.height
         width: 25
 
-        Label {
+        Image {
+            source: MoneroComponents.Style.blackTheme ? "qrc:///images/plus-white.png" : "qrc:///images/plus-black.png"
             anchors.centerIn: parent
-            text: FontAwesome.plus
-            color: MoneroComponents.Style.defaultFontColor
         }
     }
 

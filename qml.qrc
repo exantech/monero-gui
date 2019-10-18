@@ -267,5 +267,7 @@
         <file>wizard/WizardJoinMultisigWallet3.qml</file>
         <file>wizard/WizardJoinMultisigWallet4.qml</file>
         <file>pages/Proposal.qml</file>
+        <file>images/plus-black.png</file>
+        <file>images/minus-black.png</file>
     </qresource>
 </RCC>
