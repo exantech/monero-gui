@@ -46,6 +46,7 @@ Item {
     property int fontSize: 14
     property alias fontColor: label.color
     property bool iconOnTheLeft: true
+    property alias labelWrapMode: label.wrapMode
     signal clicked()
     height: 25
     width: checkBoxLayout.width

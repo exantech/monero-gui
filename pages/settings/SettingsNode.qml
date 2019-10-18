@@ -352,6 +352,7 @@ Rectangle{
                     currentWallet.setTrustedDaemon(persistentSettings.is_trusted_daemon)
                 }
                 text: qsTr("Mark as Trusted Daemon") + translationManager.emptyString
+                labelWrapMode: Text.NoWrap
             }
 
             MoneroComponents.StandardButton {

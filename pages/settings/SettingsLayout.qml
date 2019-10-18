@@ -57,6 +57,7 @@ Rectangle {
             checked: persistentSettings.customDecorations
             onClicked: Windows.setCustomWindowDecorations(checked)
             text: qsTr("Custom decorations") + translationManager.emptyString
+            labelWrapMode: Text.NoWrap
         }
 
         MoneroComponents.CheckBox {
@@ -68,6 +69,7 @@ Rectangle {
                 appWindow.updateBalance();
             }
             text: qsTr("Hide balance") + translationManager.emptyString
+            labelWrapMode: Text.NoWrap
         }
 
         MoneroComponents.CheckBox {
@@ -78,6 +80,7 @@ Rectangle {
                 persistentSettings.showPid = !persistentSettings.showPid
             }
             text: qsTr("Enable transfer with payment ID (OBSOLETE)") + translationManager.emptyString
+            labelWrapMode: Text.NoWrap
         }
 
         MoneroComponents.CheckBox {
@@ -88,6 +91,7 @@ Rectangle {
                 MoneroComponents.Style.blackTheme = !MoneroComponents.Style.blackTheme;
                 persistentSettings.blackTheme = MoneroComponents.Style.blackTheme;
             }
+            labelWrapMode: Text.NoWrap
         }
 
         MoneroComponents.CheckBox {
@@ -96,6 +100,7 @@ Rectangle {
             checked: persistentSettings.lockOnUserInActivity
             onClicked: persistentSettings.lockOnUserInActivity = !persistentSettings.lockOnUserInActivity
             text: qsTr("Lock wallet on inactivity") + translationManager.emptyString
+            labelWrapMode: Text.NoWrap
         }
 
         ColumnLayout {
@@ -170,6 +175,7 @@ Rectangle {
                         appWindow.fiatTimerStop();
                     }
                 }
+                labelWrapMode: Text.NoWrap
             }
         }
 
