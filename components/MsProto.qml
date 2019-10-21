@@ -396,7 +396,24 @@ QtObject {
             return;
         }
 
-        exchangeKeys();
+        getInviteCode();
+    }
+
+    function getInviteCode() {
+        var nonce = nextNonce();
+        var signature = walletManager.signMessage(sessionId + nonce, mWallet.secretSpendKey);
+
+        var req = new Request.Request(httpFactory.createHttpClient())
+            .setMethod("GET")
+            .setUrl(getUrl("wallet_invite"))
+            .setHeaders(getHeaders(sessionId, nonce, signature))
+            .onSuccess(getHandler("get invite code", function (obj) {
+                inviteCodeReceived(obj.invite_code);
+                exchangeKeys();
+            }))
+            .onError(getStdError("get invite code"));
+
+        req.send();
     }
 
     function onWalletRefreshed() {

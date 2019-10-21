@@ -183,6 +183,33 @@ Item {
                 opacity: MoneroComponents.Style.dividerOpacity
             }
 
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: "transparent"
+                width: 300
+                height: 300
+
+                Image {
+                    id: qrCode
+                    anchors.fill: parent
+                    visible: walletInviteCode != ""
+
+                    smooth: false
+                    fillMode: Image.PreserveAspectFit
+                    source: "image://qrcode/" + walletInviteCode
+
+                    MouseArea {
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            clipboard.setText(multisigSplash.walletInviteCode);
+                            appWindow.showStatusMessage(qsTr("Invite code copied to clipboard"),3);
+                        }
+                    }
+                }
+            }
+
             MoneroComponents.StandardButton {
                 text: "Back"
                 Layout.topMargin: 10
