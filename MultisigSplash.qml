@@ -185,7 +185,7 @@ Item {
 
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: "transparent"
+                color: MoneroComponents.Style.blackTheme ? "white" : "black"
                 width: 300
                 height: 300
 
