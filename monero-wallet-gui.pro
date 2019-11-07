@@ -295,7 +295,8 @@ win32 {
         -lssl \
         -lsodium \
         -lcrypto \
-        -lws2_32
+        -lws2_32 \
+        -lrandomx
     
     !contains(QMAKE_TARGET.arch, x86_64) {
         message("Target is 32bit")
@@ -339,6 +340,7 @@ linux {
         -lssl \
         -llmdb \
         -lsodium \
+        -lrandomx \
 #        -lhidapi-libusb \
         -lcrypto $$TREZOR_LINKER
 
@@ -382,6 +384,7 @@ macx {
         -lssl \
         -lsodium \
         -lcrypto \
+        -lrandomx \
         -ldl $$TREZOR_LINKER
 
     QMAKE_LFLAGS += -pie

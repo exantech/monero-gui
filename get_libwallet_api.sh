@@ -1,6 +1,6 @@
 #!/bin/bash
 MONERO_URL=https://github.com/exantech/monero.git
-MONERO_BRANCH=release-v0.14-exa-wallet
+MONERO_BRANCH=release-v0.15-exa-wallet-fastsync
 
 pushd $(pwd)
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
