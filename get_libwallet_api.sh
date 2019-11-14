@@ -246,6 +246,9 @@ eval make -C $MONERO_DIR/build/$BUILD_TYPE/external/easylogging++ all install
 # install lmdb
 eval make -C $MONERO_DIR/build/$BUILD_TYPE/external/db_drivers/liblmdb all install
 
+# install randomx
+eval make -C $MONERO_DIR/build/$BUILD_TYPE/external/randomx all install
+
 # Install libunbound
 if [ -d $MONERO_DIR/build/$BUILD_TYPE/external/unbound ]; then
     echo "Installing libunbound..."
