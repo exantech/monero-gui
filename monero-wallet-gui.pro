@@ -17,13 +17,13 @@ packagesExist(hidapi-libusb) {
     PKGCONFIG += hidapi-libusb
 }
 !win32 {
-    QMAKE_CXXFLAGS += -fPIC -fstack-protector -fstack-protector-strong
-    QMAKE_LFLAGS += -fstack-protector -fstack-protector-strong
-
     packagesExist(protobuf) {
         PKGCONFIG += protobuf
     }
 }
+
+QMAKE_CXXFLAGS += -fPIC -fstack-protector -fstack-protector-strong
+QMAKE_LFLAGS += -fstack-protector -fstack-protector-strong
 
 # cleaning "auto-generated" bitmonero directory on "make distclean"
 QMAKE_DISTCLEAN += -r $$WALLET_ROOT
