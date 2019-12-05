@@ -32,7 +32,9 @@ INCLUDEPATH +=  $$WALLET_ROOT/include \
                 $$PWD/src/libwalletqt \
                 $$PWD/src/QR-Code-generator \
                 $$PWD/src \
-                $$WALLET_ROOT/src
+                $$WALLET_ROOT/src \
+                $$WALLET_ROOT/contrib/epee/include \
+                $$WALLET_ROOT/external/easylogging++
 
 HEADERS += \
     filter.h \

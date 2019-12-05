@@ -8,6 +8,11 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include "wallet/api/wallet2_api.h"
+#include "common/base58.h"
+#include "crypto/hash.h"
+#include "string_tools.h"
+
 bool writeFile(const QByteArray& data, const QString& filename) {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -48,6 +53,11 @@ quint32 getMandatoryUint32(const QJsonObject& obj, const QString& field) {
     return obj[field].toInt();
 }
 
+std::string hashString(const std::string& str) {
+    auto hash = crypto::cn_fast_hash(str.data(), str.size());
+    return epee::string_tools::pod_to_hex(hash);
+}
+
 MsMetaFactory::MsMetaFactory(QObject* parent): QObject (parent) {
 }
 
@@ -58,10 +68,8 @@ MsMeta* MsMetaFactory::createMeta() {
 MsMeta::MsMeta(QObject* parent) : QObject(parent) {
 }
 
-bool MsMeta::save(QString path) {
-    if (!path.length()) {
-        path = metaPath;
-    } else {
+bool MsMeta::save(const QString& password, const QString& path) {
+    if (path.length()) {
         metaPath = path;
     }
 
@@ -74,12 +82,15 @@ bool MsMeta::save(QString path) {
     obj.insert("lastOutputsRevision", static_cast<int>(lastOutputsRevision));
     obj.insert("lastOutputsImported", static_cast<int>(lastOutputsImported));
 
+    std::string encodedSeed = tools::base58::encode(Monero::chachaEncrypt(personalSeed.toStdString(), hashString(password.toStdString())));
+    obj.insert("personalSeed", QString::fromStdString(encodedSeed));
+
     QJsonDocument doc(obj);
     auto bytes = doc.toJson(QJsonDocument::Compact);
     return writeFile(bytes, metaPath);
 }
 
-bool MsMeta::load(QString path) {
+bool MsMeta::load(const QString& password, const QString& path) {
     try {
         auto bytes = readFile(path);
 
@@ -103,6 +114,19 @@ bool MsMeta::load(QString path) {
         keysRounds = getMandatoryUint32(obj, "keysRounds");
         lastOutputsRevision = obj["lastOutputsRevision"].toInt(0);
         lastOutputsImported = obj["lastOutputsImported"].toInt(0);
+
+        if (obj.contains("personalSeed")) {
+            QString encodedSeed = obj["personalSeed"].toString();
+            if (!encodedSeed.isEmpty()) {
+                std::string decodedSeed;
+                if (!tools::base58::decode(encodedSeed.toStdString(), decodedSeed)) {
+                    qWarning() << "failed to decode seed in meta file: " << path;
+                    return false;
+                }
+
+                personalSeed = QString::fromStdString(Monero::chachaDecrypt(decodedSeed, hashString(password.toStdString())));
+            }
+        }
 
         return true;
     } catch (const std::exception& ex) {
@@ -178,4 +202,12 @@ quint32 MsMeta::getLastOutputsImported() const {
 
 void MsMeta::setLastOutputsImported(quint32 l) {
     lastOutputsImported = l;
+}
+
+void MsMeta::setPersonalSeed(const QString& s) {
+    personalSeed = s;
+}
+
+QString MsMeta::getPersonalSeed() const {
+    return personalSeed;
 }

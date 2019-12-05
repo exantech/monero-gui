@@ -237,7 +237,7 @@ void Wallet::setDaemonLogin(const QString &daemonUsername, const QString &daemon
     m_daemonPassword = daemonPassword;
 }
 
-void Wallet::initAsync(const QString &daemonAddress, quint64 upperTransactionLimit, bool isRecovering, bool isRecoveringFromDevice, quint64 restoreHeight)
+void Wallet::initAsync(const QString &daemonAddress, quint64 upperTransactionLimit, bool isRecovering, bool isRecoveringFromDevice, quint64 restoreHeight, bool launchRefresh)
 {
     qDebug() << "initAsync: " + daemonAddress;
     // Change status to disconnected if connected
@@ -251,14 +251,16 @@ void Wallet::initAsync(const QString &daemonAddress, quint64 upperTransactionLim
     QFutureWatcher<bool> * watcher = new QFutureWatcher<bool>();
 
     connect(watcher, &QFutureWatcher<bool>::finished,
-            this, [this, watcher, daemonAddress, upperTransactionLimit, isRecovering, restoreHeight]() {
+            this, [this, watcher, daemonAddress, upperTransactionLimit, isRecovering, restoreHeight, launchRefresh]() {
         QFuture<bool> future = watcher->future();
         watcher->deleteLater();
         if(future.result()){
             emit walletCreationHeightChanged();
             qDebug() << "init async finished - starting refresh";
             connected(true);
-            m_walletImpl->startRefresh();
+            if (launchRefresh) {
+                m_walletImpl->startRefresh();
+            }
 
         }
     });

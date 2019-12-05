@@ -276,20 +276,22 @@ ApplicationWindow {
                 restoreHeight = persistentSettings.restore_height
             }
 
-            connectWallet(wizard.m_wallet)
+            connectWallet(wizard.m_wallet, !wizard.isMultisignature)
 
             if (wizard.isMultisignature) {
                 var meta = metaFactory.createMeta();
                 meta.state = !wizard.joiningMultisig ? "personal" : "joining";
                 meta.signaturesRequired = wizard.signaturesCount;
                 meta.participantsCount = wizard.participantsCount;
-                meta.save(persistentSettings.wallet_path + ".meta");
                 meta.path = persistentSettings.wallet_path + ".meta";
                 meta.mwsUrl = wizard.mwsUrl;
+                meta.personalSeed = wizard.walletOptionsSeed;
+                meta.save(appWindow.walletPassword, persistentSettings.wallet_path + ".meta");
 
                 MoneroComponents.MsProto.meta = meta;
                 MoneroComponents.MsProto.inviteCode = wizard.inviteCode
                 MoneroComponents.MsProto.mWallet = currentWallet
+                MoneroComponents.MsProto.walletPassword = appWindow.walletPassword
                 MoneroComponents.MsProto.start()
             }
 
@@ -311,7 +313,7 @@ ApplicationWindow {
             }
 
             var existing_meta = metaFactory.createMeta();
-            if (existing_meta.load(metaPath + ".meta")) {
+            if (existing_meta.load(appWindow.walletPassword, metaPath + ".meta")) {
                 existing_meta.path = metaPath + ".meta";
                 MoneroComponents.MsProto.meta = existing_meta;
             } else {
@@ -355,8 +357,13 @@ ApplicationWindow {
 
     }
 
-    function connectWallet(wallet) {
+    function connectWallet(wallet, refresh) {
         currentWallet = wallet
+
+        var startRefresh = true;
+        if (refresh != undefined) {
+            startRefresh = refresh;
+        }
 
         // TODO:
         // When the wallet variable is undefined, it yields a zero balance.
@@ -421,7 +428,7 @@ ApplicationWindow {
             currentDaemonAddress = localDaemonAddress
 
         console.log("initializing with daemon address: ", currentDaemonAddress)
-        currentWallet.initAsync(currentDaemonAddress, 0, persistentSettings.is_recovering, persistentSettings.is_recovering_from_device, persistentSettings.restore_height);
+        currentWallet.initAsync(currentDaemonAddress, 0, persistentSettings.is_recovering, persistentSettings.is_recovering_from_device, persistentSettings.restore_height, startRefresh);
         // save wallet keys in case wallet settings have been changed in the init
         currentWallet.setPassword(walletPassword);
     }
@@ -606,6 +613,7 @@ ApplicationWindow {
             console.info("on loaded wallet. signatures: " + MoneroComponents.MsProto.meta.signaturesRequired + ", participants: " + MoneroComponents.MsProto.meta.participantsCount + ", state: " + MoneroComponents.MsProto.meta.state);
 
             MoneroComponents.MsProto.mWallet = currentWallet
+            MoneroComponents.MsProto.walletPassword = appWindow.walletPassword
             MoneroComponents.MsProto.start()
 
             if (MoneroComponents.MsProto.meta.state !== "ready") {
@@ -1742,6 +1750,7 @@ ApplicationWindow {
 
         onWalletCreated: {
             rootItem.state = "normal";
+            currentWallet.startRefresh();
         }
     }
 
@@ -2347,7 +2356,7 @@ ApplicationWindow {
             } else {
                 msg = qsTr("New version of Monero is available. Check out getmonero.org") + translationManager.emptyString
             }
-            notifier.show(msg)
+//            notifier.show(msg)
         } else {
             print("Failed to parse update spec")
         }

@@ -22,12 +22,13 @@ class MsMeta: public QObject {
     Q_PROPERTY(quint32 lastOutputsImported READ getLastOutputsImported WRITE setLastOutputsImported NOTIFY lastOuputsImportedChanged)
     Q_PROPERTY(QString path READ getPath WRITE setPath)
     Q_PROPERTY(QString mwsUrl READ getMwsUrl WRITE setMwsUrl)
+    Q_PROPERTY(QString personalSeed READ getPersonalSeed WRITE setPersonalSeed)
 
 public:
     explicit MsMeta(QObject* parent = nullptr);
 
-    Q_INVOKABLE bool save(QString path = "");
-    Q_INVOKABLE bool load(QString path);
+    Q_INVOKABLE bool save(const QString& password, const QString& path = "");
+    Q_INVOKABLE bool load(const QString& password, const QString& path);
 
     Q_INVOKABLE bool isLoaded() const;
 
@@ -55,6 +56,9 @@ public:
     Q_INVOKABLE quint32 getLastOutputsImported() const;
     Q_INVOKABLE void setLastOutputsImported(quint32 l);
 
+    Q_INVOKABLE void setPersonalSeed(const QString& s);
+    Q_INVOKABLE QString getPersonalSeed() const;
+
 signals:
     void lastOuputsImportedChanged() const;
     void signaturesRequiredChanged() const;
@@ -70,4 +74,5 @@ private:
     quint32 keysRounds = 0;
     quint32 lastOutputsRevision = 0;
     quint32 lastOutputsImported = 0;
+    QString personalSeed;
 };

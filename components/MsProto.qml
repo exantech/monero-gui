@@ -15,6 +15,7 @@ QtObject {
     property string inviteCode
     property bool stopped: false
     property bool exchangingOutputs: false
+    property string walletPassword
 
     property string sessionId
 
@@ -65,7 +66,7 @@ QtObject {
         stopped = true;
 
         if (meta) {
-            meta.save();
+            meta.save(walletPassword);
             meta = null;
         }
 
@@ -176,7 +177,7 @@ QtObject {
             .setData(data)
             .onSuccess(getHandler("create wallet", function (obj) {
                 meta.state = "inProgress";
-                meta.save();
+                meta.save(walletPassword);
 
                 inviteCodeReceived(obj.invite_code);
                 console.info("invite code: " + obj.invite_code);
@@ -272,7 +273,7 @@ QtObject {
             var multisig_infos = resp.multisig_infos.map(function (x) {return x.multisig_info});
             var extra_ms_info = mWallet.makeMultisig(multisig_infos, meta.signaturesRequired);
             meta.keysRounds++;
-            meta.save();
+            meta.save(walletPassword);
             keyExchangeRoundPassed(meta.keysRounds);
 
             if (extra_ms_info) {
@@ -288,7 +289,7 @@ QtObject {
                 timer.onTriggered.disconnect(exchangeKeys);
                 console.info("wallet created");
                 meta.state = "ready";
-                meta.save();
+                meta.save(walletPassword);
 
                 walletCreated();
                 changePublicKey(oldSecretKey, function () { });
@@ -327,7 +328,7 @@ QtObject {
             } else {
                 timer.onTriggered.disconnect(exchangeKeys);
                 meta.state = "ready";
-                meta.save();
+                meta.save(walletPassword);
                 walletCreated();
                 changePublicKey(oldSecretKey, function () { });
             }
@@ -355,7 +356,7 @@ QtObject {
             .setData(data)
             .onSuccess(getHandler("join wallet", function (obj) {
                 meta.state = "inProgress";
-                meta.save();
+                meta.save(walletPassword);
                 joinedToWallet();
 
                 getWalletInfo(infoHandler);
@@ -609,7 +610,7 @@ QtObject {
             .onSuccess(getHandler("export outputs", function () {
                 meta.lastOutputsRevision = n;
                 meta.lastOutputsImported = 0;
-                meta.save();
+                meta.save(walletPassword);
                 console.info("outputs exported successfully. Checking for import");
                 importOutputs(n);
             }))
@@ -650,7 +651,7 @@ QtObject {
 
             var imported = mWallet.importMultisigImages(toImport); //TODO: check status
             meta.lastOutputsImported = toImport.length;
-            meta.save();
+            meta.save(walletPassword);
             console.info("imported " + imported + " outputs of " + meta.participantsCount + " participants");
         });
 

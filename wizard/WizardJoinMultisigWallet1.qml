@@ -82,6 +82,64 @@ Rectangle {
                 }
             }
 
+            MoneroComponents.LineEditMulti {
+                id: seed
+
+                Layout.topMargin: 20
+
+                spacing: 0
+                inputPaddingLeft: 16
+                inputPaddingRight: 16
+                inputPaddingTop: 20
+                inputPaddingBottom: 20
+                inputRadius: 0
+
+                fontSize: 18
+                fontBold: true
+                wrapMode: Text.WordWrap
+                backgroundColor: "red"
+                addressValidation: false
+                labelText: qsTr("Mnemonic seed") + translationManager.emptyString
+                labelFontSize: 14
+                copyButton: false
+                readOnly: true
+
+                placeholderText: "-"
+                text: wizardController.walletOptionsSeed
+            }
+
+            MoneroComponents.WarningBox {
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1
+                    color: MoneroComponents.Style.inputBorderColorInActive
+                }
+
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.left: parent.left
+                    anchors.bottom: parent.bottom
+                    height: 1
+                    color: MoneroComponents.Style.inputBorderColorInActive
+                }
+
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1
+                    color: MoneroComponents.Style.inputBorderColorInActive
+                }
+
+                radius: 0
+                border.color: MoneroComponents.Style.inputBorderColorInActive
+                border.width: 0
+
+                text: qsTr("This seed is <b>very</b> important to write down and keep secret. It is all you need to backup and restore your wallet.") + translationManager.emptyString
+            }
+
             WizardNav {
                 progressSteps: 4
                 progress: 1

@@ -228,7 +228,11 @@ Rectangle {
         secretSpendKey.text = (!currentWallet.viewOnly) ? currentWallet.secretSpendKey : ""
         publicSpendKey.text = currentWallet.publicSpendKey
 
-        seedText.text = currentWallet.seed === "" ? qsTr("Mnemonic seed protected by hardware device.") + translationManager.emptyString : currentWallet.seed
+        if (currentWallet.multisigState.multisig) {
+            seedText.text = MoneroComponents.MsProto.meta.personalSeed
+        } else {
+            seedText.text = currentWallet.seed === "" ? qsTr("Mnemonic seed protected by hardware device.") + translationManager.emptyString : currentWallet.seed
+        }
 
         if(typeof currentWallet != "undefined") {
             viewOnlyQRCode.source = "image://qrcode/monero_wallet:" + currentWallet.address(0, 0) + "?view_key="+currentWallet.secretViewKey+"&height="+currentWallet.walletCreationHeight
@@ -242,7 +246,7 @@ Rectangle {
                 secretSpendKey.text = qsTr("(View Only Wallet - No secret spend key available)") + translationManager.emptyString
             }
             // hardware device wallet
-            if(currentWallet.seed === "") {
+            if(currentWallet.seed === "" && !currentWallet.multisigState.multisig) {
                 showFullQr.visible = false
                 viewOnlyQRCode.visible = true
                 showViewOnlyQr.visible = false

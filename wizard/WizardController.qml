@@ -73,7 +73,7 @@ Rectangle {
         wizardController.walletRestoreMode = 'seed'
         wizardController.walletOptionsSubaddressLookahead = '';
         wizardController.remoteNodes = {};
-	wizardController.isMultisignature = false;
+        wizardController.isMultisignature = false;
         wizardController.signaturesCount = 0;
         wizardController.isMultisignature = false;
         wizardController.joiningMultisig = false;
