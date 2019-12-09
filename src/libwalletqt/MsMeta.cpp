@@ -7,11 +7,10 @@
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QCryptographicHash>
 
 #include "wallet/api/wallet2_api.h"
 #include "common/base58.h"
-#include "crypto/hash.h"
-#include "string_tools.h"
 
 bool writeFile(const QByteArray& data, const QString& filename) {
     QFile file(filename);
@@ -54,8 +53,8 @@ quint32 getMandatoryUint32(const QJsonObject& obj, const QString& field) {
 }
 
 std::string hashString(const std::string& str) {
-    auto hash = crypto::cn_fast_hash(str.data(), str.size());
-    return epee::string_tools::pod_to_hex(hash);
+    auto h = QCryptographicHash::hash(QByteArray(str.c_str()), QCryptographicHash::Sha3_256);
+    return h.toHex().toStdString();
 }
 
 MsMetaFactory::MsMetaFactory(QObject* parent): QObject (parent) {
