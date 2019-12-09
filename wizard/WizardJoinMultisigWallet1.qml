@@ -32,6 +32,8 @@ import QtQuick.Controls 2.0
 
 import moneroComponents.Clipboard 1.0
 import "../components" as MoneroComponents
+import "../js/Wizard.js" as Wizard
+import moneroComponents.NetworkType 1.0
 
 Rectangle {
     id: wizardJoinMultisigWallet1
@@ -80,6 +82,14 @@ Rectangle {
                     }
                     inlineButtonVisible : false
                 }
+            }
+
+            MoneroComponents.LineEdit {
+                id: mwsUrlInput
+                Layout.fillWidth: true
+                Layout.topMargin: 20
+                labelText: qsTr("Multisignature wallet service url") + translationManager.emptyString
+                error: mwsUrlInput.text == ""
             }
 
             MoneroComponents.LineEditMulti {
@@ -143,13 +153,14 @@ Rectangle {
             WizardNav {
                 progressSteps: 4
                 progress: 1
-                btnNext.enabled: walletInput.verify() && inviteCodeLine.text != "";
+                btnNext.enabled: walletInput.verify() && inviteCodeLine.text != "" && walletInput.verify() && mwsUrlInput.text != "";
                 onPrevClicked: {
                     wizardStateView.state = "wizardHome";
                     wizardController.isMultisignature = false;
                 }
 
                 onNextClicked: {
+                    wizardController.mwsUrl = Wizard.normalizeMwsUrl('https', mwsUrlInput.text);
                     wizardController.walletOptionsName = walletInput.walletName.text;
                     wizardController.walletOptionsLocation = walletInput.walletLocation.text;
                     wizardController.inviteCode = inviteCodeLine.text
@@ -158,6 +169,22 @@ Rectangle {
             }
 
             Clipboard { id: clipboard }
+        }
+    }
+
+    function onPageCompleted(previousView){
+        if(previousView.viewName !== "wizardHome") {
+            return;
+        }
+
+        inviteCodeLine.text = "";
+
+        if (appWindow.persistentSettings.nettype == NetworkType.MAINNET) {
+            mwsUrlInput.text = "https://mws.exan.tech/";
+        } else if (appWindow.persistentSettings.nettype == NetworkType.STAGENET) {
+            mwsUrlInput.text = "https://mws-stage.exan.tech/";
+        } else {
+            mwsUrlInput.text = "";
         }
     }
 }

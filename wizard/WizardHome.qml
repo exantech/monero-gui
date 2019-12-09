@@ -143,7 +143,7 @@ Rectangle {
 
             WizardMenuItem {
                 headerText: qsTr("Create multisig wallet") + translationManager.emptyString
-                bodyText: qsTr("Create your own cryptofund.") + translationManager.emptyString
+                bodyText: qsTr("Collaborate with co-payers.") + translationManager.emptyString
                 imageIcon: "../images/restore-wallet.png"
 
                 onMenuClicked: {
@@ -164,13 +164,25 @@ Rectangle {
 
             WizardMenuItem {
                 headerText: qsTr("Join multisig wallet") + translationManager.emptyString
-                bodyText: qsTr("Be a part of something.") + translationManager.emptyString
+                bodyText: qsTr("Join new multisignature wallet.") + translationManager.emptyString
                 imageIcon: "../images/restore-wallet.png"
 
                 onMenuClicked: {
                     wizardController.restart();
                     wizardController.createWallet();
                     wizardStateView.state = "wizardJoinMultisigWallet1"
+                }
+            }
+
+            WizardMenuItem {
+                headerText: qsTr("Restore multisig wallet from seed") + translationManager.emptyString
+                bodyText: qsTr("Restore your multisig wallet from personal seed.") + translationManager.emptyString
+                imageIcon: "../images/restore-wallet.png"
+
+                onMenuClicked: {
+                    wizardController.restart();
+                    wizardController.createWallet();
+                    wizardStateView.state = "wizardRestoreMultisigWallet1"
                 }
             }
 

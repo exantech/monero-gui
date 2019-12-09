@@ -182,3 +182,16 @@ function getApproximateBlockchainHeight(_date, _nettype){
         return 0;
     }
 }
+
+function normalizeMwsUrl(defaultScheme, url) {
+    var c = url.split('://')
+    if (c.length === 1) {
+        url = defaultScheme + "://" + url
+    }
+
+    if (url[url.length-1] !== '/') {
+        url = url + '/'
+    }
+
+    return url
+}

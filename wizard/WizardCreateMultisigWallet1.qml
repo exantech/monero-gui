@@ -158,7 +158,7 @@ Rectangle {
                 onNextClicked: {
                     wizardController.walletOptionsName = walletInput.walletName.text;
                     wizardController.walletOptionsLocation = walletInput.walletLocation.text;
-                    wizardController.mwsUrl = normalizeMwsUrl('https', mwsUrlInput.text)
+                    wizardController.mwsUrl = Wizard.normalizeMwsUrl('https', mwsUrlInput.text)
                     wizardStateView.state = "wizardCreateMultisigWallet2";
                 }
             }
@@ -169,18 +169,5 @@ Rectangle {
         if(previousView.viewName === "wizardHome"){
             walletInput.reset();
         }
-    }
-
-    function normalizeMwsUrl(defaultScheme, url) {
-        var c = url.split('://')
-        if (c.length === 1) {
-            url = defaultScheme + "://" + url
-        }
-
-        if (url[url.length-1] !== '/') {
-            url = url + '/'
-        }
-
-        return url
     }
 }

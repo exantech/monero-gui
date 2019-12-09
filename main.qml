@@ -280,7 +280,12 @@ ApplicationWindow {
 
             if (wizard.isMultisignature) {
                 var meta = metaFactory.createMeta();
-                meta.state = !wizard.joiningMultisig ? "personal" : "joining";
+                if (wizard.walletOptionsIsRecovering) {
+                    meta.state = "recovering";
+                } else {
+                    meta.state = !wizard.joiningMultisig ? "personal" : "joining";
+                }
+
                 meta.signaturesRequired = wizard.signaturesCount;
                 meta.participantsCount = wizard.participantsCount;
                 meta.path = persistentSettings.wallet_path + ".meta";

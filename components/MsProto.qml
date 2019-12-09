@@ -37,6 +37,7 @@ QtObject {
 
     property var activeProposal: null;
     property int staticRevision: 0;
+    property bool increaseRevision: false
 
     property Timer timer: Timer{
         interval: 2000
@@ -119,6 +120,10 @@ QtObject {
             break;
         case "joining":
             joinWallet();
+            break;
+        case "recovering":
+            increaseRevision = true;
+            getWalletInfo(infoHandler);
             break;
         case "inProgress":
             getWalletInfo(infoHandler);
@@ -292,7 +297,11 @@ QtObject {
                 meta.save(walletPassword);
 
                 walletCreated();
-                changePublicKey(oldSecretKey, function () { });
+                changePublicKey(oldSecretKey, function () {
+                    if (increaseRevision) {
+                        incStaticRevision();
+                    }
+                });
             }
         } catch (e) {
             timer.start();
@@ -330,7 +339,11 @@ QtObject {
                 meta.state = "ready";
                 meta.save(walletPassword);
                 walletCreated();
-                changePublicKey(oldSecretKey, function () { });
+                changePublicKey(oldSecretKey, function () {
+                    if (increaseRevision) {
+                        incStaticRevision();
+                    }
+                });
             }
         } catch (e) {
             timer.start();

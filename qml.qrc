@@ -269,5 +269,9 @@
         <file>pages/Proposal.qml</file>
         <file>images/plus-black.png</file>
         <file>images/minus-black.png</file>
+        <file>wizard/WizardRestoreMultisigWallet1.qml</file>
+        <file>wizard/WizardRestoreMultisigWallet2.qml</file>
+        <file>wizard/WizardRestoreMultisigWallet3.qml</file>
+        <file>wizard/WizardRestoreMultisigWallet4.qml</file>
     </qresource>
 </RCC>

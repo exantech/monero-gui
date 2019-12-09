@@ -508,7 +508,8 @@ DISTFILES += \
     wizard/WizardJoinMultisigWallet2.qml \
     wizard/WizardJoinMultisigWallet3.qml \
     wizard/WizardJoinMultisigWallet4.qml \
-    wizard/WizardMultisignatureScheme.qml
+    wizard/WizardMultisignatureScheme.qml \
+    wizard/WizardRestoreMultisigWallet1.qml
 
 
 # windows application icon
